@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+        <title th:replace="fragments/bootstrap :: header"></title>
+    </head>
+    <body>
+        <div class="container-fluid" style="height: 100vh">
+            <div class="row h-100">
+                <div class="col-3 h-100" style="background-color: white">
+                    <h1 class="display-1 text-center">Login</h1>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="form-group">
+                            <label for="inputUsername">Username</label>
+                            <input type="text" class="form-control" id="inputUsername" placeholder="Enter username" required name="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword">Password</label>
+                            <input type="password" class="form-control" id="inputPassword" placeholder="Password" required name="password">
+                        </div>
+                        <button type="submit" class="btn btn-dark btn-block">Submit</button>
+                        <a th:href="@{/sign_up}">Sign up</a>
+                    </form>
+                </div>
+
+                <div class="col-9 h-100"
+                     style="background-image: url('https://i.pinimg.com/originals/21/ae/8e/21ae8e3a0cc6fbbfeaa3a0d9e577478a.png'); background-size: cover;">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
