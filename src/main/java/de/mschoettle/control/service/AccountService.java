@@ -24,13 +24,12 @@ public class AccountService implements UserDetailsService {
     private BCryptPasswordEncoder passwordEncoder;
 
     public void createNewUser(Account account) {
-        if(
-                account.getName() == null ||
+        if(account.getName() == null ||
                 account.getName().trim().isEmpty() ||
-                        account.getEmail() == null ||
-                        account.getEmail().trim().isEmpty() ||
-                        account.getHashedPassword() == null ||
-                        account.getHashedPassword().isEmpty()) {
+                account.getEmail() == null ||
+                account.getEmail().trim().isEmpty() ||
+                account.getHashedPassword() == null ||
+                account.getHashedPassword().isEmpty()) {
 
             // TODO is it ok to print a error message with password if its sure its empty or null?
             throw new IllegalArgumentException("One or more of the following parameters where empty or null: name:" + account.getName() +
@@ -43,6 +42,7 @@ public class AccountService implements UserDetailsService {
                     ", email: " + account.getEmail());
         }
 
+        // TODO add root folder with FileSystemService
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
     }

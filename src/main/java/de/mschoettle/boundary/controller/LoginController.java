@@ -21,18 +21,20 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/login")
-    public String showLoginView(){
+    public String showLoginView(Model model){
+        model.addAttribute("usernameOrPasswordIsWrong", false);
         return "login";
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public String loginToAccount(Model model) {
+        model.addAttribute("usernameOrPasswordIsWrong", false);
         return "main";
     }
 
-    // TODO remove
-    @RequestMapping(value = "/test")
-    public String test(){
-        return "test";
+    @RequestMapping(value = "/loginFailed")
+    public String loginFailed(Model model){
+        model.addAttribute("usernameOrPasswordIsWrong", true);
+        return "login";
     }
 }

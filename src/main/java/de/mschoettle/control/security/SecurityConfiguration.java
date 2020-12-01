@@ -33,7 +33,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(ALLOW_ACCESS_WITHOUT_AUTHENTICATION)
                 .permitAll().anyRequest().authenticated();
         http
-                .formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/main").failureUrl("/test")
+                .formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/main").failureUrl("/loginFailed")
                 .and()
                 .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login")
                 .deleteCookies("remember-me").permitAll()

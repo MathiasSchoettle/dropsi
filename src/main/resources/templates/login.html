@@ -24,6 +24,8 @@
                         <button type="submit" class="btn btn-dark btn-block">Submit</button>
                         <a th:href="@{/sign_up}">Sign up</a>
                     </form>
+
+                    <span th:if="${usernameOrPasswordIsWrong}">Username or password is wrong</span>
                 </div>
 
                 <div class="col-9 h-100"
