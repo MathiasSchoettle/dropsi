@@ -1,6 +1,7 @@
 package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.service.AccountService;
+import de.mschoettle.control.service.i.IAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -13,15 +14,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class LoginController {
 
     @Autowired
-    AccountService accountService;
+    private IAccountService accountService;
 
-    @RequestMapping(value = "/")
-    public String uponLoad(){
-        return "login";
-    }
-
-    @RequestMapping(value = "/login")
-    public String showLoginView(Model model){
+    @RequestMapping(value = {"/login", "/"})
+    public String showLoginView(Model model) {
         model.addAttribute("usernameOrPasswordIsWrong", false);
         return "login";
     }

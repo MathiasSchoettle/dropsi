@@ -1,107 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Main</title>
-        <title th:replace="fragments/bootstrap :: header"></title>
-    </head>
-    <body style="background-color: #efefef">
-        <div class="container-fluid" style="height: 100vh">
-            <div class="row h-100">
-                <div class="col-1 h-100" style="padding: 0">
-                        <nav class="navbar navbar-dark bg-dark d-flex flex-column h-100">
-                            <div id="navbarNav">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/mainStyle.css}" rel="stylesheet"/>
+    <title>Main</title>
+    <title th:replace="fragments/bootstrap :: header"></title>
+</head>
+<body style="background-color: #1d1e22">
 
-                                <a class="navbar-brand" href="#">
-                                    <img src="https://images.vexels.com/media/users/3/137380/isolated/preview/1b2ca367caa7eff8b45c09ec09b44c16-instagram-symbol-logo-by-vexels.png" width="30" height="30" class="d-inline-block align-top" alt="">
-                                    Dropsi
-                                </a>
+<div class="container-fluid p-0" style="height: 100vh">
+    <div class="row col-12 h-100 m-0 p-0">
+        <!-- navbar -->
+        <nav class="navbar navbar-side navbar-dark d-flex flex-column h-100">
+            <div class="col">
+                <a class="navbar-brand" href="#">
+                    <img src="https://i.ibb.co/D7YTyP8/logo.png" class="logo" alt="logo">
+                </a>
 
-                                <ul class="navbar-nav">
-                                    <li class="nav-item active">
-                                        <a class="nav-link" href="#">My Files</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">My Shares</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Shared Files</a>
-                                    </li>
-                                </ul>
-                            </div>
+                <ul class="navbar-nav">
+                    <li class="nav-item active float-left">
+                        <a class="nav-link" href="#">My Files</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">My Shares</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">Shared Files</a>
+                    </li>
+                </ul>
+            </div>
 
-                            <div>
-                                <a class="btn btn-danger" th:href="@{logout}" role="button">Logout</a>
-                            </div>
-                        </nav>
-                </div>
+            <a class="btn btn-block btn-danger" th:href="@{/logout}" role="button">Logout</a>
 
-                <div class="col-11 h-100 st" style="padding: 0">
-                    <div class="row" style="margin: 0; height: 60px">
-                        <nav class="navbar navbar-dark bg-secondary col-12">
-                            <form class="form-inline">
-                                <input class="form-control mr-sm-2" type="search" placeholder="Suche" aria-label="Search">
-                                <button class="btn btn-dark my-2 my-sm-0" type="Suchen">Search</button>
-                            </form>
+            <hr/>
+        </nav>
 
-                            <button class="btn btn-dark my-2 my-sm-0" type="Suchen">Settings</button>
-                        </nav>
+        <div class="h-100 col p-0 d-flex flex-column">
+            <div class="flex-column justify-content-center top-bar">
+                <i class='material-icons text-white top-bar-icon' style="float: right">settings</i>
+                <a th:href="@{/logout}">
+                    <i  class='material-icons text-white top-bar-icon ml-3' style="float: left">keyboard_backspace</i>
+                </a>
+                <div th:text="${currentFolder.name}" class="text-white top-bar-text"></div>
+            </div>
+
+            <div class="flex-column justify-content-center flex-grow-1 overflow-auto pl-4 pr-4 pt-3" style="background-color: #2e2f34; border-top-left-radius: 20px;">
+
+                <div class="col mt-2 d-flex file-view-container" th:each="fileSystemObject: ${currentFolder.contents}">
+                    <i th:if="${fileSystemObject.isFolder()}" class='material-icons file-icon'>folder</i>
+                    <i th:unless="${fileSystemObject.isFolder()}" class='material-icons file-icon'>description</i>
+
+                    <a th:if="${fileSystemObject.isFolder()}" th:href="@{/folder/{folderId}(folderId = ${fileSystemObject.id})}" class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
+                    <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
+
+                    <div class=" d-flex flex-column pr-5">
+                        <div class="flex-grow-1 file-info" th:text="${fileSystemObject.getPrettyFileSize()}"></div>
+                        <div class="flex-grow-1 file-info text-gray file-date" th:text="${fileSystemObject.getPrettyCreationDate()}"></div>
                     </div>
-
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb"  style="border-radius: 0">
-                            <li class="breadcrumb-item"><a href="#">Dropsi</a></li>
-                            <li class="breadcrumb-item"><a href="#">Uni</a></li>
-                            <li class="breadcrumb-item"><a href="#">Semester 6</a></li>
-                            <li class="breadcrumb-item active">Software Development</li>
-                        </ol>
-                    </nav>
-
-                    <table class="table table-hover">
-                        <thead>
-                        <tr class="d-flex">
-                                <th class="col-1" scope="col"></th>
-                                <th class="col-8" scope="col">Name</th>
-                                <th class="col-2" scope="col">Größe</th>
-                                <th class="col-1" scope="col"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <tr class="d-flex">
-                            <td class="col-1">
-                                <i style="font-size: 24px"  class="fas fa-file-alt"></i>
-                            </td>
-                            <td class="col-8">Abgabe_Meilenstein1.pdf</td>
-                            <td class="col-2">30 Kb</td>
-                            <td class="col-1">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </td>
-                        </tr>
-                        <tr class="d-flex">
-                            <td class="col-1">
-                                <i style="font-size: 24px"  class="fas fa-file-alt"></i>
-                            </td>
-                            <td class="col-8">Abgabe_Meilenstein2.docx</td>
-                            <td class="col-2">42 Mb</td>
-                            <td class="col-1">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </td>
-                        </tr>
-                        <tr class="d-flex">
-                            <td class="col-1">
-                                <i style="font-size: 24px" class="fas fa-folder"></i>
-                            </td>
-                            <td class="col-8">SW-Projekt</td>
-                            <td class="col-2">123 Mb</td>
-                            <td class="col-1">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
                 </div>
+
             </div>
         </div>
-    </body>
+    </div>
+</div>
+</body>
 </html>

@@ -10,5 +10,4 @@ public interface IAccountRepository extends CrudRepository<Account, Long> {
     Account findByName(String name);
 
     Account findByEmail(String email);
-
 }

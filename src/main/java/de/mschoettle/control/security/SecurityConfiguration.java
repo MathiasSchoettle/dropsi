@@ -24,7 +24,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private SecurityUtilities securityUtilities;
 
-    private static String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/", "/login", "/sign_up"};
+    //TODO remove /main
+    private static String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/", "/login", "/sign_up", "/css/**", "/image/**", "/fonts/**"};
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

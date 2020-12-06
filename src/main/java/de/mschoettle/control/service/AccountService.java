@@ -1,21 +1,22 @@
 package de.mschoettle.control.service;
 
+import de.mschoettle.control.service.i.IAccountService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.repository.IAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Service
 @Qualifier("account")
-public class AccountService implements UserDetailsService {
+public class AccountService implements IAccountService {
+
+    @Autowired
+    private InternalFileSystemService fileSystemService;
 
     @Autowired
     private IAccountRepository accountRepo;
@@ -23,6 +24,7 @@ public class AccountService implements UserDetailsService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Override
     public void createNewUser(Account account) {
         if(account.getName() == null ||
                 account.getName().trim().isEmpty() ||
@@ -31,7 +33,7 @@ public class AccountService implements UserDetailsService {
                 account.getHashedPassword() == null ||
                 account.getHashedPassword().isEmpty()) {
 
-            // TODO is it ok to print a error message with password if its sure its empty or null?
+            // TODO is it ok to print a error message with password if it's empty or null?
             throw new IllegalArgumentException("One or more of the following parameters where empty or null: name:" + account.getName() +
                     ", email: " + account.getEmail() +
                     ", password: " + account.getHashedPassword());
@@ -42,16 +44,20 @@ public class AccountService implements UserDetailsService {
                     ", email: " + account.getEmail());
         }
 
-        // TODO add root folder with FileSystemService
+        // TODO geht das hier auch ohne 2 mal account speichern
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
+        accountRepo.save(account);
+
+        fileSystemService.giveAccountRootFolder(account);
+        accountRepo.save(account);
     }
 
     private void hashPasswordOfAccount(Account account) {
         account.setHashedPassword(passwordEncoder.encode(account.getHashedPassword()));
-        accountRepo.save(account);
     }
 
+    @Override
     public boolean isEmailTaken(String email) {
 
         if (email == null)
@@ -60,6 +66,7 @@ public class AccountService implements UserDetailsService {
         return accountRepo.findByEmail(email) != null;
     }
 
+    @Override
     public boolean isUsernameTaken(String username) {
 
         if (username == null)

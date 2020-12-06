@@ -1,4 +1,4 @@
-package de.mschoettle.control.service;
+package de.mschoettle.control.service.i;
 
 public interface IPermissionService {
 }

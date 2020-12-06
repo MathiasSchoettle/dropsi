@@ -2,21 +2,27 @@ package de.mschoettle.entity;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="ref_type")
 public abstract class FileSystemObject {
 
     @Id
+    @GeneratedValue
     private long id;
 
     private String name;
 
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
 
-    private LocalDate lastUpdateDate;
+    private LocalDateTime lastUpdateDate;
 
     private long fileSize;
 
@@ -32,13 +38,64 @@ public abstract class FileSystemObject {
     @OneToMany(mappedBy = "shared")
     private List<Permission> permissions;
 
+    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy");
+
     public FileSystemObject(){}
+
+    public FileSystemObject(String name, long fileSize, Account owner, Folder parent) {
+        this.name = name;
+        this.creationDate = LocalDateTime.now();
+        this.lastUpdateDate = this.creationDate;
+        this.fileSize = fileSize;
+        this.owner = owner;
+        this.parent = parent;
+        this.accessLogs = new ArrayList<>();
+        this.permissions = new ArrayList<>();
+    }
 
     public abstract void move();
 
     public abstract void copy();
 
     public abstract void delete();
+
+    // TODO das hier ist mal wieder absoluter schmu, aber ich weiß ned wies anders geht weil ich thymeleaf ned kann lul
+    public boolean isFolder() {
+        return this instanceof Folder;
+    }
+
+    public String getPrettyCreationDate() {
+        return dtf.format(this.creationDate);
+    }
+
+    public String getPrettyLastUpdateDate() {
+        return dtf.format(this.creationDate);
+    }
+
+    // TODO make this nicer
+    public String getPrettyFileSize() {
+
+        StringBuilder sb = new StringBuilder();
+
+        if(this.fileSize > 1000000000) {
+            sb.append(this.fileSize / 1000000000);
+            sb.append(" GB");
+        }
+        else if(this.fileSize > 1000000) {
+            sb.append(this.fileSize / 1000000);
+            sb.append(" MB");
+        }
+        else if(this.fileSize > 1000) {
+            sb.append(this.fileSize / 1000);
+            sb.append(" KB");
+        }
+        else {
+            sb.append(this.fileSize);
+            sb.append(" Byte");
+        }
+
+        return sb.toString();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -61,11 +118,11 @@ public abstract class FileSystemObject {
         return name;
     }
 
-    public LocalDate getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public LocalDate getLastUpdateDate() {
+    public LocalDateTime getLastUpdateDate() {
         return lastUpdateDate;
     }
 

@@ -1,11 +1,11 @@
 package de.mschoettle.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class File extends FileSystemObject {
 
     private String fileType;
@@ -14,19 +14,30 @@ public class File extends FileSystemObject {
 
     public File(){}
 
+    public File(String name, long fileSize, Account owner, Folder parent, String fileType, String fileReference){
+        super(name, fileSize, owner, parent);
+        this.fileType = fileType;
+        this.fileReference = fileReference;
+    }
+
     @Override
     public void move() {
-        // TODO
+        // TODO implement
     }
 
     @Override
     public void copy() {
-        // TODO
+        // TODO implement
     }
 
     @Override
     public void delete() {
-        // TODO
+        // TODO implement
+    }
+
+    @Override
+    public String toString() {
+        return getName() + "." + this.fileType;
     }
 
     public String getFileType() {

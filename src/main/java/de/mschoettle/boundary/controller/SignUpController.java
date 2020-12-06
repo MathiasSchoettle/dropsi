@@ -1,6 +1,7 @@
 package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.service.AccountService;
+import de.mschoettle.control.service.i.IAccountService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class SignUpController {
 
     @Autowired
-    private AccountService accountService;
+    private IAccountService accountService;
 
     @RequestMapping(value = "/sign_up", method = RequestMethod.GET)
     public String showSignUpView(Model model) {
@@ -32,7 +33,7 @@ public class SignUpController {
 
             if (!(boolean) model.getAttribute("accountNameTaken") && !(boolean) model.getAttribute("emailTaken")) {
                 accountService.createNewUser(account);
-                return "main";
+                return "login";
             }
         }
 
