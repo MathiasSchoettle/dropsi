@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
+    <title>Title</title>
+    <title th:replace="fragments/bootstrap :: header"></title>
+</head>
+<body>
+    <div class="container-fluid p-0 d-flex flex-row justify-content-center main-container">
+        <div class="d-flex flex-column justify-content-center">
+            <div class="form-container p-3">
+                <form action="" class="text-white">
+
+                    <div class="d-flex flex-row justify-content-between ml-2">
+                        <p class="h1">SETTINGS</p>
+
+                        <a th:href="@{/main}">
+                            <i class='material-icons text-white top-bar-icon'>close</i>
+                        </a>
+                    </div>
+
+                    <hr/>
+
+                    <p class="h5 ml-2">Account info</p>
+
+                    <div class="form-group input-container">
+                        <label for="nameInput" class="input-label">Name</label>
+                        <input type="text" class="form-control input-field" id="nameInput" th:placeholder="${account.name}">
+                    </div>
+
+                    <div class="form-group input-container">
+                        <label for="emailInput" class="input-label">E-Mail</label>
+                        <input type="email" class="form-control input-field" id="emailInput" th:placeholder="${account.email}">
+                    </div>
+
+                    <div class="form-group input-container">
+                        <label for="passwordInput" class="input-label">Password</label>
+                        <input readonly onfocus="this.removeAttribute('readonly');" type="password" class="form-control input-field" id="passwordInput">
+                    </div>
+
+                    <div class="d-flex flex-row justify-content-around">
+                        <button type="submit" class="btn btn-danger">Delete Account</button>
+                    </div>
+
+                    <hr/>
+
+                    <p class="h5 ml-2">Retrogram</p>
+
+                    <div class="form-group input-container">
+                        <label for="retrogramInput" class="input-label">Token</label>
+                        <input type="text" class="form-control input-field" id="retrogramInput">
+                    </div>
+
+                    <hr/>
+
+                    <button type="submit" class="btn btn-block btn-success">Save</button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
