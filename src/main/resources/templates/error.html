@@ -7,7 +7,11 @@
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
-    <h1 class="display-1 text-center">Something went wrong</h1>
-    <img style="margin: auto" src="https://assets.stickpng.com/thumbs/580b57fbd9996e24bc43bbde.png" class="img-fluid" alt="Responsive image">
+    <div class="d-flex d-row justify-content-center" style="height: 100vh">
+        <div class="d-flex flex-column justify-content-center">
+            <h3>Something went wrong</h3>
+            <img th:src="@{/img/dog.png}" alt="Responsive image">
+        </div>
+    </div>
 </body>
 </html>
