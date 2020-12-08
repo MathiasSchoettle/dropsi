@@ -4,6 +4,8 @@ import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Optional;
+
 public interface IFileSystemObjectRepository extends CrudRepository<FileSystemObject, Long> {
-    FileSystemObject findByIdAndOwner(long id, Account account);
+    Optional<FileSystemObject> findByIdAndOwner(long id, Account account);
 }

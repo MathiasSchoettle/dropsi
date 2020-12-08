@@ -11,7 +11,7 @@
     <div class="container-fluid p-0 d-flex flex-row justify-content-center main-container">
         <div class="d-flex flex-column justify-content-center">
             <div class="form-container p-3">
-                <form action="" class="text-white">
+                <form th:action="@{/settings}" th:object="${account}" class="text-white" method="post">
 
                     <div class="d-flex flex-row justify-content-between ml-2">
                         <p class="h1">SETTINGS</p>
@@ -23,25 +23,45 @@
 
                     <hr/>
 
-                    <p class="h5 ml-2">Account info</p>
+                    <p class="h5 ml-2">Change Account-Info</p>
 
                     <div class="form-group input-container">
                         <label for="nameInput" class="input-label">Name</label>
-                        <input type="text" class="form-control input-field" id="nameInput" th:placeholder="${account.name}">
+                        <input type="text" class="form-control input-field" id="nameInput" th:text="*{name}" th:field="*{name}" th:placeholder="${name}">
+
+                        <div th:if="${triedToChangeUsername}">
+                            <div th:if="${changedUsername}" class="d-flex d-row ml-2 mt-1 input-success">
+                                Username was successfully changed.
+                            </div>
+
+                            <div th:unless="${changedUsername}" class="d-flex d-row ml-2 mt-1 input-error">
+                                Failed. Username already exists
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group input-container">
                         <label for="emailInput" class="input-label">E-Mail</label>
-                        <input type="email" class="form-control input-field" id="emailInput" th:placeholder="${account.email}">
+                        <input type="email" class="form-control input-field" id="emailInput" th:text="*{email}" th:field="*{email}" th:placeholder="${email}">
+
+                        <div th:if="${triedToChangeEmail}">
+                            <div th:if="${changedEmail}" class="d-flex d-row ml-2 mt-1 input-success">
+                                Email was successfully changed.
+                            </div>
+
+                            <div th:unless="${changedEmail}" class="d-flex d-row ml-2 mt-1 input-error">
+                                Failed. Email already exists
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group input-container">
                         <label for="passwordInput" class="input-label">Password</label>
-                        <input readonly onfocus="this.removeAttribute('readonly');" type="password" class="form-control input-field" id="passwordInput">
+                        <input readonly onfocus="this.removeAttribute('readonly');" type="password" disabled th:field="*{password}" class="form-control input-field" id="passwordInput">
                     </div>
 
                     <div class="d-flex flex-row justify-content-around">
-                        <button type="submit" class="btn btn-danger">Delete Account</button>
+                        <button type="" disabled class="btn btn-danger">Delete Account</button>
                     </div>
 
                     <hr/>
@@ -50,7 +70,7 @@
 
                     <div class="form-group input-container">
                         <label for="retrogramInput" class="input-label">Token</label>
-                        <input type="text" class="form-control input-field" id="retrogramInput">
+                        <input type="text" class="form-control input-field" id="retrogramInput" disabled th:field="*{securityToken}">
                     </div>
 
                     <hr/>

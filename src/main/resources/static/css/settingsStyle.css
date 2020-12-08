@@ -26,6 +26,16 @@
     width: 300px !important;
 }
 
+.input-error {
+    font-size: 14px;
+    color: #fd6060 !important;
+}
+
+.input-success {
+    font-size: 14px;
+    color: #97fd74 !important;
+}
+
 .input-field:focus {
     box-shadow: none!important;
 }

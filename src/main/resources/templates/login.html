@@ -29,6 +29,10 @@
 
                 <button type="submit" class="btn btn-success btn-block">Log in!</button>
 
+                <div th:if="${usernameOrPasswordIsWrong}" class="d-flex d-row justify-content-center input-error">
+                    Wrong Username or Password!
+                </div>
+
                 <div class="d-flex flex-row mt-4 justify-content-center input-container">
                     <a class="text-white pt-2" th:href="@{/sign_up}">Don't have an Account? <strong>Sign up</strong></a>
                 </div>

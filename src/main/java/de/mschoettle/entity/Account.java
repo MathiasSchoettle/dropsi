@@ -14,8 +14,10 @@ public class Account implements UserDetails {
     @GeneratedValue
     private long id;
 
+    @Column(unique = true)
     private String name;
 
+    @Column(unique = true)
     private String email;
 
     private LocalDate creationDate;
