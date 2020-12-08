@@ -24,6 +24,8 @@ public class SignUpController {
         return "sign_up";
     }
 
+    // TODO make successful sign up automatic login
+    // TODO add messages to view if sign up fails
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
     public String signUpNewAccount(@ModelAttribute Account account, Model model) {
 

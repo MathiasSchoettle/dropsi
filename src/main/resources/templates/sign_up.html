@@ -1,41 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
-<meta charset="UTF-8">
-<title>Sign Up</title>
-<title th:replace="fragments/bootstrap :: header"></title>
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
+    <title>Sign up to Dropsi</title>
+    <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
-<div class="container-fluid" style="height: 100vh">
-    <div class="row h-100">
-        <div class="col-3 h-100" style="background-color: white">
-            <h1 class="display-1 text-center">Sign Up</h1>
+<div class="container-fluid p-0 d-flex flex-row justify-content-center main-container">
+    <div class="d-flex flex-column justify-content-center">
+        <div class="form-container p-3">
 
-            <form th:action="@{/sign_up}" th:object="${account}" method="post">
-                <div class="form-group">
-                    <label for="inputUsername">Username</label>
-                    <input type="text" class="form-control" id="inputUsername" required th:field="*{name}" placeholder="Enter username">
+            <div class="d-flex flex-row justify-content-center mb-3">
+                <img th:src="@{/img/logo.png}" width="300px" alt="logo"/>
+            </div>
+
+            <form th:action="@{/sign_up}" th:object="${account}" class="text-white" method="post">
+                <div class="form-group input-container">
+                    <label for="inputUsername" class="input-label">Username</label>
+                    <input type="text" class="form-control input-field" id="inputUsername" required th:field="*{name}">
                 </div>
 
-                <div class="form-group">
-                    <label for="inputEmail">E-Mail-Address</label>
-                    <input type="email" class="form-control" id="inputEmail" required th:field="*{email}" placeholder="Enter email">
+                <div class="form-group input-container">
+                    <label for="inputEmail" class="input-label">E-Mail-Address</label>
+                    <input type="email" class="form-control input-field" id="inputEmail" required th:field="*{email}">
                 </div>
 
-                <div class="form-group">
-                    <label for="inputPassword">Password</label>
-                    <input type="password" class="form-control" maxlength="20" minlength="8" required th:field="*{hashedPassword}" id="inputPassword" placeholder="Password">
+                <div class="form-group input-container">
+                    <label for="inputPassword" class="input-label">Password</label>
+                    <input type="password" readonly onfocus="this.removeAttribute('readonly');"
+                           class="form-control input-field" maxlength="20" minlength="8" required
+                           th:field="*{hashedPassword}" id="inputPassword">
                 </div>
-                <button type="submit" class="btn btn-dark btn-block">Submit</button>
-                <a th:href="@{/login}">Login</a>
+
+                <hr/>
+
+                <button type="submit" class="btn btn-success btn-block">Sign up!</button>
+
+                <div class="d-flex flex-row mt-4 justify-content-center input-container">
+                    <a class="text-white pt-2" th:href="@{/login}">Have an Account? <strong>Log in</strong></a>
+                </div>
+
             </form>
-
-            <span th:if="${accountNameTaken}">Username already exists</span>
-            <span th:if="${emailTaken}">Email already exists</span>
-
-        </div>
-
-        <div class="col-9 h-100" style="background-image: url('https://wallpaperaccess.com/full/697544.jpg'); background-size: cover;">
         </div>
     </div>
 </div>
