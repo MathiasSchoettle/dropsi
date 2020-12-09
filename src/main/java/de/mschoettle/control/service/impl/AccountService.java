@@ -34,10 +34,9 @@ public class AccountService implements IAccountService {
                 account.getHashedPassword() == null ||
                 account.getHashedPassword().isEmpty()) {
 
-            // TODO is it ok to print a error message with password if it's empty or null?
             throw new IllegalArgumentException("One or more of the following parameters where empty or null: name:" + account.getName() +
                     ", email: " + account.getEmail() +
-                    ", password: " + account.getHashedPassword());
+                    ", password: " + "* * *");
         }
 
         if(isUsernameTaken(account.getName()) || isEmailTaken(account.getEmail())) {
@@ -46,12 +45,15 @@ public class AccountService implements IAccountService {
         }
 
         // TODO geht das hier auch ohne 2 mal account speichern
+
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
         accountRepo.save(account);
 
         fileSystemService.giveAccountRootFolder(account);
+
         accountRepo.save(account);
+
     }
 
     private void hashPasswordOfAccount(Account account) {

@@ -11,8 +11,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Optional;
 
@@ -34,6 +36,7 @@ public class MainController {
         Account account = accountService.getLoggedInAccount();
         model.addAttribute("account", account);
         model.addAttribute("currentFolder", account.getRootFolder());
+        model.addAttribute("folderName", new Folder());
         return "main";
     }
 
@@ -41,6 +44,7 @@ public class MainController {
     public String changeCurrentFolder(Model model, @PathVariable("folderId") long folderId) {
         Account account = accountService.getLoggedInAccount();
         model.addAttribute("account", account);
+        model.addAttribute("folderName", new Folder());
 
         Optional<FileSystemObject> newFolderOptional = fileSystemService.getFileSystemObjectById(folderId, account);
 
@@ -51,6 +55,25 @@ public class MainController {
         else {
             // TODO make this a log and redirect to root? exceptions can be thrown when user inputs url himself
             throw new IllegalArgumentException("Folder with id " + folderId + " does not exist for account: " + account.getId());
+        }
+
+        return "main";
+    }
+
+    @RequestMapping(value = "/addFolder/{folderId}", method = RequestMethod.POST)
+    public String addNewFolder(@ModelAttribute Folder folderName, Model model, @PathVariable("folderId") long folderId) {
+
+        Account account = accountService.getLoggedInAccount();
+        model.addAttribute("account", account);
+        model.addAttribute("folderName", new Folder());
+
+        Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, account);
+
+        if(folderOptional.isPresent()) {
+            Folder parentFolder = (Folder) folderOptional.get();
+            Folder folderToAdd = new Folder(folderName.getName(), 0, account, parentFolder);
+            fileSystemService.saveFileSystemObject(folderToAdd);
+            model.addAttribute("currentFolder", parentFolder);
         }
 
         return "main";
