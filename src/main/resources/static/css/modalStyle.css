@@ -1,0 +1,16 @@
+.modal-background {
+    background-color: rgba(0,0,0,0.9) !important;
+}
+
+.modal-container {
+    background-color: #242529 !important;
+}
+
+.modal-fragment {
+    border: none !important
+}
+
+.modal-text {
+    background-color: #1d1e22 !important;
+    border-radius: 15px !important;
+}

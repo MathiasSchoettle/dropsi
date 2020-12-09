@@ -82,6 +82,11 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    public void deleteAccount(Account account) {
+        accountRepo.delete(account);
+    }
+
+    @Override
     public Account getLoggedInAccount() {
         String username = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         return this.loadUserByUsername(username);

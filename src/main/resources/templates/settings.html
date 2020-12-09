@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
+    <link th:href="@{/css/modalStyle.css}" rel="stylesheet"/>
     <title>Title</title>
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
@@ -57,11 +58,34 @@
 
                     <div class="form-group input-container">
                         <label for="passwordInput" class="input-label">Password</label>
-                        <input readonly onfocus="this.removeAttribute('readonly');" type="password" disabled th:field="*{password}" class="form-control input-field" id="passwordInput">
+                        <input readonly onfocus="this.removeAttribute('readonly');" type="password" placeholder="To be implemented"  disabled th:field="*{password}" class="form-control input-field" id="passwordInput">
                     </div>
 
                     <div class="d-flex flex-row justify-content-around">
-                        <button type="" disabled class="btn btn-danger">Delete Account</button>
+                        <a class="btn btn-danger" data-toggle="modal" data-target="#confirmationModal">Delete Account</a>
+                    </div>
+
+                    <!-- Modal -->
+                    <div class="modal fade modal-background" id="confirmationModal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content modal-container">
+                                <div class="modal-header modal-fragment">
+                                    <h3 class="modal-title ml-2" id="exampleModalLabel">WHOA THERE</h3>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <i class='material-icons text-white'>close</i>
+                                    </button>
+                                </div>
+                                <div class="modal-body modal-text ml-3 mr-3">
+                                    Once you delete your account there is no going back.
+                                    <br>
+                                    Make sure you really want to do this.
+                                </div>
+                                <div class="modal-footer modal-fragment d-flex flex-row justify-content-around col-12" role="group">
+                                    <a class="btn btn-danger col-5" th:href="@{/deleteAccount}">Delete</a>
+                                    <button type="button" class="btn btn-secondary col-5" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <hr/>
@@ -70,7 +94,7 @@
 
                     <div class="form-group input-container">
                         <label for="retrogramInput" class="input-label">Token</label>
-                        <input type="text" class="form-control input-field" id="retrogramInput" disabled th:field="*{securityToken}">
+                        <input type="text" class="form-control input-field" id="retrogramInput" placeholder="To be implemented" disabled th:field="*{securityToken}">
                     </div>
 
                     <hr/>

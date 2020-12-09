@@ -4,6 +4,10 @@ import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -37,7 +41,6 @@ public class SettingsController {
         return "settings";
     }
 
-    // TODO do here
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     public String saveSettings(@ModelAttribute Account account, Model model) {
 
@@ -49,16 +52,16 @@ public class SettingsController {
         boolean triedToChangeEmail;
         boolean changedEmail = false;
 
-        if(triedToChangeUsername = !account.getName().trim().equals("")) {
-            if(changedUsername = !accountService.isUsernameTaken(account.getName())) {
+        if (triedToChangeUsername = !account.getName().trim().equals("")) {
+            if (changedUsername = !accountService.isUsernameTaken(account.getName())) {
                 currentAccount.setName(account.getName());
             }
         }
 
         model.addAttribute("name", currentAccount.getName());
 
-        if(triedToChangeEmail = !account.getEmail().trim().equals("")) {
-            if(changedEmail = !accountService.isEmailTaken(account.getEmail())) {
+        if (triedToChangeEmail = !account.getEmail().trim().equals("")) {
+            if (changedEmail = !accountService.isEmailTaken(account.getEmail())) {
                 currentAccount.setEmail(account.getEmail());
             }
         }
@@ -75,5 +78,13 @@ public class SettingsController {
         accountService.saveAccount(currentAccount);
 
         return "settings";
+    }
+
+    @RequestMapping(value = "/deleteAccount")
+    public String deleteAccount(Model model) {
+        accountService.deleteAccount(accountService.getLoggedInAccount());
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        return "login";
     }
 }

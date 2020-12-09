@@ -30,7 +30,7 @@ public class Account implements UserDetails {
 
     private String securityToken;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private Folder rootFolder;
 
     @OneToMany(mappedBy = "receiver")

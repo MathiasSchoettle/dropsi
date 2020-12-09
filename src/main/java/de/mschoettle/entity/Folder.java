@@ -9,7 +9,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Folder extends FileSystemObject {
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FileSystemObject> contents;
 
     public Folder(String name, long fileSize, Account owner, Folder parent) {
