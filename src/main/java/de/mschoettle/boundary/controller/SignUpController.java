@@ -17,7 +17,7 @@ public class SignUpController {
     @Autowired
     private IAccountService accountService;
 
-    @RequestMapping(value = "/sign_up", method = RequestMethod.GET)
+    @RequestMapping(value = "/sign_up")
     public String showSignUpView(Model model) {
         model.addAttribute("account", new Account());
         model.addAttribute("accountNameTaken", false);
@@ -26,7 +26,6 @@ public class SignUpController {
     }
 
     // TODO make successful sign up automatic login
-    // TODO add messages to view if sign up fails
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
     public String signUpNewAccount(@ModelAttribute Account account, Model model) {
 

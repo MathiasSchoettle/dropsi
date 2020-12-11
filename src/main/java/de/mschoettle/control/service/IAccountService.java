@@ -13,7 +13,5 @@ public interface IAccountService extends UserDetailsService {
 
     void createNewUser(Account account);
 
-    Account getLoggedInAccount();
-
     void deleteAccount(Account account);
 }

@@ -36,6 +36,13 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         account.setRootFolder(rootFolder);
     }
 
+    @Override
+    public void addNewEmptyFolderToFolder(Account account, Folder parentFolder, String childFolderName) {
+        Folder folderToAdd = new Folder(childFolderName, 0, account, parentFolder);
+        saveFileSystemObject(folderToAdd);
+        parentFolder.addFileSystemObject(folderToAdd);
+        saveFileSystemObject(parentFolder);
+    }
 
     @Override
     public Optional<FileSystemObject> getFileSystemObjectById(long id, Account account) {

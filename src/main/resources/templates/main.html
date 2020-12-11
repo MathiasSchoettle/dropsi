@@ -34,7 +34,7 @@
                 </ul>
             </div>
 
-            <a class="btn btn-block btn-danger" th:href="@{/logout}" role="button" th:text="${'Logout ' + account.getName()}"></a>
+            <a class="btn btn-block btn-danger" th:href="@{/logout}" role="button" th:text="Logout"></a>
 
             <hr/>
         </nav>
@@ -78,7 +78,7 @@
                     <i class='material-icons file-icon'>add</i>
                 </div>
 
-                <!-- Modal -->
+                <!-- modal -->
                 <div class="modal fade modal-background text-white" id="confirmationModal" tabindex="-1" role="dialog" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content modal-container">
@@ -89,7 +89,7 @@
                                 </button>
                             </div>
 
-                            <form th:action="@{/addFolder/{folderId}(folderId = ${currentFolder.id})}" th:object="${folderName}" method="POST" class="text-white">
+                            <form th:action="@{/addFolder}" th:object="${folderToAdd}" method="POST" class="text-white">
                                 <div class="form-group input-container ml-3 mr-3">
                                     <label for="inputFolderName" class="input-label">Folder name</label>
                                     <input type="text" class="form-control input-field w-100" id="inputFolderName" th:field="*{name}" name="folderName" required>

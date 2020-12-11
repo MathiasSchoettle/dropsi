@@ -9,26 +9,27 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Folder extends FileSystemObject {
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FileSystemObject> contents;
+    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FileSystemObject> contents = new ArrayList<>();
 
     public Folder(String name, long fileSize, Account owner, Folder parent) {
         super(name, fileSize, owner, parent);
         this.contents = new ArrayList<>();
     }
 
-    public Folder(){}
+    public Folder() {
+    }
 
     public void addFileSystemObject(FileSystemObject fileSystemObject) {
-        if(fileSystemObject == null) {
+        if (fileSystemObject == null) {
             throw new IllegalArgumentException("FileSystemObject is null");
         }
 
-        if(this.equals(fileSystemObject)) {
+        if (this.equals(fileSystemObject)) {
             throw new IllegalArgumentException("Folder and FileSystemObject are the same");
         }
 
-        if(this.contents.contains(fileSystemObject)) {
+        if (this.contents.contains(fileSystemObject)) {
             throw new IllegalArgumentException("folder already contains FileSystemObject: " + fileSystemObject);
         }
 

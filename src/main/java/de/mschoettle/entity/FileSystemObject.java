@@ -16,27 +16,27 @@ public abstract class FileSystemObject {
 
     @Id
     @GeneratedValue
-    private long id;
+    private long id = 0;
 
-    private String name;
+    private String name = "";
 
-    private LocalDateTime creationDate;
+    private LocalDateTime creationDate = LocalDateTime.MIN;
 
-    private LocalDateTime lastUpdateDate;
+    private LocalDateTime lastUpdateDate = LocalDateTime.MIN;
 
-    private long fileSize;
-
-    @ManyToOne
-    private Account owner;
+    private long fileSize = 0;
 
     @ManyToOne
-    private Folder parent;
+    private Account owner = null;
+
+    @ManyToOne
+    private Folder parent = null;
 
     @OneToMany(mappedBy = "reference")
-    private List<AccessLogEntry> accessLogs;
+    private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "shared")
-    private List<Permission> permissions;
+    private List<Permission> permissions = new ArrayList<>();
 
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy");
 
@@ -116,6 +116,10 @@ public abstract class FileSystemObject {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public LocalDateTime getCreationDate() {

@@ -4,17 +4,13 @@ import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.persistence.ManyToOne;
 
 @Controller
 @Scope("session")
@@ -23,13 +19,14 @@ public class SettingsController {
     @Autowired
     private IAccountService accountService;
 
+    @Autowired
+    private MainController mainController;
+
     @RequestMapping(value = "/settings")
     public String showSettings(Model model) {
 
-        Account account = accountService.getLoggedInAccount();
-
-        model.addAttribute("name", account.getName());
-        model.addAttribute("email", account.getEmail());
+        model.addAttribute("name", mainController.getAuthenticatedAccount().getName());
+        model.addAttribute("email", mainController.getAuthenticatedAccount().getEmail());
 
         model.addAttribute("triedToChangeUsername", false);
         model.addAttribute("changedUsername", false);
@@ -44,8 +41,6 @@ public class SettingsController {
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     public String saveSettings(@ModelAttribute Account account, Model model) {
 
-        Account currentAccount = accountService.getLoggedInAccount();
-
         boolean triedToChangeUsername;
         boolean changedUsername = false;
 
@@ -54,19 +49,19 @@ public class SettingsController {
 
         if (triedToChangeUsername = !account.getName().trim().equals("")) {
             if (changedUsername = !accountService.isUsernameTaken(account.getName())) {
-                currentAccount.setName(account.getName());
+                mainController.getAuthenticatedAccount().setName(account.getName());
             }
         }
 
-        model.addAttribute("name", currentAccount.getName());
+        model.addAttribute("name", mainController.getAuthenticatedAccount().getName());
 
         if (triedToChangeEmail = !account.getEmail().trim().equals("")) {
             if (changedEmail = !accountService.isEmailTaken(account.getEmail())) {
-                currentAccount.setEmail(account.getEmail());
+                mainController.getAuthenticatedAccount().setEmail(account.getEmail());
             }
         }
 
-        model.addAttribute("email", currentAccount.getEmail());
+        model.addAttribute("email", mainController.getAuthenticatedAccount().getEmail());
 
         model.addAttribute("triedToChangeUsername", triedToChangeUsername);
         model.addAttribute("changedUsername", changedUsername);
@@ -75,16 +70,8 @@ public class SettingsController {
 
         model.addAttribute("account", new Account());
 
-        accountService.saveAccount(currentAccount);
+        accountService.saveAccount(mainController.getAuthenticatedAccount());
 
         return "settings";
-    }
-
-    @RequestMapping(value = "/deleteAccount")
-    public String deleteAccount(Model model) {
-        accountService.deleteAccount(accountService.getLoggedInAccount());
-        SecurityContextHolder.getContext().setAuthentication(null);
-
-        return "login";
     }
 }

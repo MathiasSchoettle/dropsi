@@ -5,8 +5,6 @@ import de.mschoettle.entity.Account;
 import de.mschoettle.entity.repository.IAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -64,7 +62,7 @@ public class AccountService implements IAccountService {
     public boolean isEmailTaken(String email) {
 
         if (email == null)
-            throw new IllegalArgumentException("Email can not be null");
+            throw new IllegalArgumentException("E-Mail can not be null");
 
         return accountRepo.findByEmail(email).isPresent();
     }
@@ -80,22 +78,31 @@ public class AccountService implements IAccountService {
 
     @Override
     public void saveAccount(Account account) {
+
+        if(account == null) {
+            throw new IllegalArgumentException("Account can not be null");
+        }
+
         accountRepo.save(account);
     }
 
     @Override
     public void deleteAccount(Account account) {
+
+        if(account == null) {
+            throw new IllegalArgumentException("Account can not be null");
+        }
+
         accountRepo.delete(account);
     }
 
     @Override
-    public Account getLoggedInAccount() {
-        String username = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        return this.loadUserByUsername(username);
-    }
-
-    @Override
     public Account loadUserByUsername(String s) throws UsernameNotFoundException {
+
+        if(s == null) {
+            throw new IllegalArgumentException("Name can not be null");
+        }
+
         return accountRepo.findByName(s).orElseThrow(() -> new UsernameNotFoundException("No account found with name: " + s));
     }
 }
