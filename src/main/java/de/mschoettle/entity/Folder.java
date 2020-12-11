@@ -53,10 +53,12 @@ public class Folder extends FileSystemObject {
     @Override
     public String toString() {
 
-        StringBuilder sb = new StringBuilder(getName());
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(getName());
         sb.append("\n");
 
-        for(FileSystemObject f : this.getContents()) {
+        for (FileSystemObject f : this.getContents()) {
             sb.append("└ ");
             sb.append(f.toString());
             sb.append("\n");
