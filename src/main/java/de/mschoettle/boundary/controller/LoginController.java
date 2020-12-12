@@ -21,30 +21,23 @@ public class LoginController {
     @Autowired
     private MainController mainController;
 
-    private boolean usernameOrPasswordIsWrong = false;
-
     @RequestMapping(value = {"/login", "/"})
     public String showLoginView(Model model) {
-        usernameOrPasswordIsWrong = false;
+        model.addAttribute("usernameOrPasswordIsWrong", false);
         return "login";
     }
 
     @RequestMapping(value = "/loginFailed")
     public String loginFailed(Model model){
-        usernameOrPasswordIsWrong = true;
+        model.addAttribute("usernameOrPasswordIsWrong", true);
         return "login";
     }
 
     @RequestMapping(value = "/deleteAccount")
     public String deleteAccount(Model model) {
         accountService.deleteAccount(mainController.getAuthenticatedAccount());
-        usernameOrPasswordIsWrong = false;
+        model.addAttribute("usernameOrPasswordIsWrong", false);
         SecurityContextHolder.getContext().setAuthentication(null);
         return "login";
-    }
-
-    @ModelAttribute("usernameOrPasswordIsWrong")
-    public boolean isUsernameOrPasswordWrong(){
-        return usernameOrPasswordIsWrong;
     }
 }
