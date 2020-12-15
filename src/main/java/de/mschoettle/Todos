@@ -12,6 +12,7 @@
 
 ## PRIO 3 ##
 - refactor sign up to register
+- rewrite code so files are only saved as ids in filesystem
 
 ## PRIO Backburner ##
 - refactor prettyPrint filesize in FileSystemObject
