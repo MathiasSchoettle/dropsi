@@ -3,12 +3,24 @@ package de.mschoettle.control.service;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Optional;
 
 public interface IInternalFileSystemService extends IFileSystemService {
 
-    public void saveFileSystemObject(FileSystemObject fileSystemObject);
+    void saveFileSystemObject(FileSystemObject fileSystemObject);
 
-    public void giveAccountRootFolder(Account account);
+    void deleteFileSystemObject(Account account, Folder parent, long fileSystemObjectId);
 
-    public void addNewEmptyFolderToFolder(Account account, Folder parentFolder, String childFolderName);
+    void giveAccountRootFolder(Account account);
+
+    void addNewFolderToFolder(Account account, Folder parentFolder, String childFolderName);
+
+    void addFileToFolder(Account account, Folder parentFolder, MultipartFile[] files);
+
+    Optional<FileSystemObject> getFileSystemObjectById(long id, Account account);
+
+    void recalculateSize(Folder folder);
 }

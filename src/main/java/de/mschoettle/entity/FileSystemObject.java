@@ -1,6 +1,7 @@
 package de.mschoettle.entity;
 
 import javax.persistence.*;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,12 +54,6 @@ public abstract class FileSystemObject {
         this.permissions = new ArrayList<>();
     }
 
-    public abstract void move();
-
-    public abstract void copy();
-
-    public abstract void delete();
-
     // TODO das hier ist mal wieder absoluter schmu, aber ich weiß ned wies anders geht weil ich thymeleaf ned kann lul
     public boolean isFolder() {
         return this instanceof Folder;
@@ -76,21 +71,22 @@ public abstract class FileSystemObject {
     public String getPrettyFileSize() {
 
         StringBuilder sb = new StringBuilder();
+        DecimalFormat df2 = new DecimalFormat("0.00");
 
-        if(this.fileSize > 1000000000) {
-            sb.append(this.fileSize / 1000000000);
+        if(fileSize > 1000000000d) {
+            sb.append(df2.format((double) fileSize / 1000000000d));
             sb.append(" GB");
         }
-        else if(this.fileSize > 1000000) {
-            sb.append(this.fileSize / 1000000);
+        else if(fileSize > 1000000d) {
+            sb.append(df2.format((double) fileSize / 1000000d));
             sb.append(" MB");
         }
-        else if(this.fileSize > 1000) {
-            sb.append(this.fileSize / 1000);
+        else if(fileSize > 1000d) {
+            sb.append(df2.format((double) fileSize / 1000d));
             sb.append(" KB");
         }
         else {
-            sb.append(this.fileSize);
+            sb.append(df2.format((double) fileSize));
             sb.append(" Byte");
         }
 
@@ -148,5 +144,29 @@ public abstract class FileSystemObject {
 
     public List<AccessLogEntry> getAccessLogs() {
         return Collections.unmodifiableList(accessLogs);
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public void setLastUpdateDate(LocalDateTime lastUpdateDate) {
+        this.lastUpdateDate = lastUpdateDate;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public void setOwner(Account owner) {
+        this.owner = owner;
+    }
+
+    public void setParent(Folder parent) {
+        this.parent = parent;
     }
 }

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>❌</title>
+    <link th:href="@{/css/mainStyle.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
@@ -11,6 +12,7 @@
         <div class="d-flex flex-column justify-content-center">
             <h3>Something went wrong</h3>
             <img th:src="@{/img/dog.png}" alt="Responsive image">
+            <a th:href="@{/main}" class="btn btn-warning">Back to the main page</a>
         </div>
     </div>
 </body>

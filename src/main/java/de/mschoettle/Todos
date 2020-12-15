@@ -1,0 +1,19 @@
+
+## PRIO 1 ##
+- Refactor MainController so its stateless
+- rename main to something more telling
+- rename paths to controller methods to be compliant with standard
+- add Get psot update delete methods to controller methods -> dont need as many URIs
+- change all methods used in main controller from service to remove unnecessary saves and updates
+
+## PRIO 2 ##
+- when a new folder is built check if a folder with same name exists and if yes rename to name(x)
+- when a file with same name is uploaded rename to name(x)
+
+## PRIO 3 ##
+- refactor sign up to register
+
+## PRIO Backburner ##
+- refactor prettyPrint filesize in FileSystemObject
+
+

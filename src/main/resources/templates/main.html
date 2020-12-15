@@ -46,6 +46,7 @@
 
                 <div class="flex-row d-flex">
 
+                    <!-- breadcrumb -->
                     <ol class="breadcrumb top-bar-breadcrumb m-0 ml-3 p-0">
                         <div th:replace="fragments/folderBreadcrumb :: folder_breadcrumb(${currentFolder})"></div>
                         <li class="breadcrumb-item active text-secondary" th:text="${currentFolder.name}"></li>
@@ -62,30 +63,64 @@
             <div class="flex-column justify-content-center flex-grow-1 overflow-auto pl-4 pr-4 pt-3"
                  style="background-color: #2e2f34; border-top-left-radius: 20px;">
 
-                <div class="col mt-2 d-flex file-view-container" th:each="fileSystemObject: ${currentFolder.contents}">
-                    <i th:if="${fileSystemObject.isFolder()}" class='material-icons file-icon'>folder</i>
-                    <i th:unless="${fileSystemObject.isFolder()}" class='material-icons file-icon'>description</i>
+                <!-- entries -->
+                <div class="row mt-2 ml-0 pl-3 d-flex flex-row file-view-container" style="overflow: hidden"
+                     th:each="fileSystemObject: ${currentFolder.contents}">
+                    <div th:replace="fragments/fileSystemObjectEntry :: fileSystemObjectEntry(${fileSystemObject})"></div>
+                </div>
 
-                    <a th:if="${fileSystemObject.isFolder()}"
-                       th:href="@{/folder/{folderId}(folderId = ${fileSystemObject.id})}"
-                       class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
-                    <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name stretched-link"
-                       th:text="${fileSystemObject.name}"></a>
+                <div class="row mt-2 ml-0 d-flex flex-row">
+                    <!-- add folder button -->
+                    <div class="file-view-container d-flex justify-content-center" data-toggle="modal"
+                         data-target="#newFolderModal" style="width: 50px; cursor: pointer">
+                        <i class='material-icons file-icon'>create_new_folder</i>
+                    </div>
 
-                    <div class=" d-flex flex-column pr-5">
-                        <div class="flex-grow-1 file-info" th:text="${fileSystemObject.getPrettyFileSize()}"></div>
-                        <div class="flex-grow-1 file-info text-secondary file-date"
-                             th:text="${fileSystemObject.getPrettyCreationDate()}"></div>
+                    <!-- upload file -->
+                    <div class="file-view-container d-flex ml-2 d-inline-block justify-content-center"
+                         data-toggle="modal"
+                         data-target="#uploadFileModal" style="width: 50px; cursor: pointer">
+                        <i class='material-icons file-icon'>publish</i>
                     </div>
                 </div>
 
-                <div class="file-view-container mt-2 d-flex justify-content-center" data-toggle="modal"
-                     data-target="#confirmationModal" style="width: 50px; cursor: pointer">
-                    <i class='material-icons file-icon'>add</i>
+                <!-- upload file modal -->
+                <div class="modal fade modal-background text-white" id="uploadFileModal" tabindex="-1" role="dialog"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content modal-container">
+                            <div class="modal-header modal-fragment">
+                                <h3 class="modal-title ml-2">UPLOAD FILE</h3>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <i class='material-icons text-white'>close</i>
+                                </button>
+                            </div>
+
+                            <form th:action="@{/upload}" method="POST" class="text-white" enctype="multipart/form-data">
+
+                                <div class="input-container ml-3 mr-3" style="overflow: hidden" >
+
+                                    <div class="ml-2">
+                                        Choose a File to upload
+                                    </div>
+
+                                    <div class="custom-file">
+                                        <input type="file" name="uploadedFile" class="custom-file-input" id="uploadedFile">
+                                        <label class="custom-file-label" for="uploadedFile">Choose file</label>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer modal-fragment d-flex flex-row justify-content-around col-12">
+                                    <button type="button" class="btn btn-secondary col-5" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success col-5">Upload File</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- modal -->
-                <div class="modal fade modal-background text-white" id="confirmationModal" tabindex="-1" role="dialog"
+                <!-- add folder modal -->
+                <div class="modal fade modal-background text-white" id="newFolderModal" tabindex="-1" role="dialog"
                      aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content modal-container">

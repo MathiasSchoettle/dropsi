@@ -1,0 +1,34 @@
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+
+<div th:fragment="fileSystemObjectEntry(fileSystemObject)" th:remove="tag">
+
+    <div class="col d-flex m-0 p-0" style="width: auto;">
+
+        <i th:if="${fileSystemObject.isFolder()}" class='material-icons file-icon'>folder</i>
+        <i th:unless="${fileSystemObject.isFolder()}" class='material-icons file-icon'>description</i>
+
+        <a th:if="${fileSystemObject.isFolder()}"
+           th:href="@{/folder/{folderId}(folderId = ${fileSystemObject.id})}"
+           class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
+        <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name"
+           th:text="${fileSystemObject.name}"></a>
+    </div>
+
+
+    <div class="d-flex flex-row justify-content-around mr-3">
+        <i class="material-icons file-edit-icon text-dark">content_copy</i>
+        <i class="material-icons file-edit-icon text-dark">exit_to_app</i>
+        <a class="text-white" th:href="@{/deleteFileSystemObject/{fileSystemObjectId}(fileSystemObjectId = ${fileSystemObject.id})}">
+            <i class="material-icons file-edit-icon">delete_outline</i>
+        </a>
+    </div>
+
+    <div class=" d-flex flex-column pr-5" style="width: 150px;">
+        <div class="flex-grow-1 file-info" th:text="${fileSystemObject.getPrettyFileSize()}"></div>
+        <div class="flex-grow-1 file-info text-secondary file-date"
+             th:text="${fileSystemObject.getPrettyCreationDate()}"></div>
+    </div>
+
+</div>
+
+</html>

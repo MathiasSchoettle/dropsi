@@ -1,5 +1,8 @@
 package de.mschoettle.entity;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +12,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Folder extends FileSystemObject {
 
-    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<FileSystemObject> contents = new ArrayList<>();
 
     public Folder(String name, long fileSize, Account owner, Folder parent) {
@@ -17,10 +20,10 @@ public class Folder extends FileSystemObject {
         this.contents = new ArrayList<>();
     }
 
-    public Folder() {
-    }
+    public Folder() {}
 
     public void addFileSystemObject(FileSystemObject fileSystemObject) {
+
         if (fileSystemObject == null) {
             throw new IllegalArgumentException("FileSystemObject is null");
         }
@@ -36,33 +39,38 @@ public class Folder extends FileSystemObject {
         this.contents.add(fileSystemObject);
     }
 
-    @Override
-    public void move() {
-        // TODO implement
+    public boolean containsFileSystemObject(long fileSystemObjectId) {
+
+        for(FileSystemObject f : contents) {
+            if(f.getId() == fileSystemObjectId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    @Override
-    public void copy() {
-        // TODO implement
-    }
+    public void removeFileSystemObject(long fileSystemObjectId) {
 
-    @Override
-    public void delete() {
-        // TODO implement
+        for(FileSystemObject f : contents) {
+            if(f.getId() == fileSystemObjectId) {
+                boolean wasRemoved = contents.remove(f);
+                System.out.println("removed fileSystemObject " + f.getName() + " " + f.getId() + " from folder " + this.getName() + ". Was removed = " + wasRemoved);
+                return;
+            }
+        }
+
+        System.out.println("nichts wurde deleted");
     }
 
     @Override
     public String toString() {
+        StringBuilder sb = new StringBuilder(getName() + ": " + getId());
 
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(getName());
-        sb.append("\n");
-
-        for (FileSystemObject f : this.getContents()) {
-            sb.append("└ ");
-            sb.append(f.toString());
-            sb.append("\n");
+        if(contents != null && !contents.isEmpty()) {
+            for(FileSystemObject f : contents) {
+                sb.append(f);
+            }
         }
 
         return sb.toString();

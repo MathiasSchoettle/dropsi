@@ -11,7 +11,7 @@ public interface IAccountService extends UserDetailsService {
 
     void saveAccount(Account account);
 
-    void createNewUser(Account account);
+    void createNewAccount(Account account);
 
     void deleteAccount(Account account);
 }

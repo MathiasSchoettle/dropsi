@@ -24,7 +24,7 @@ public class AccountService implements IAccountService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public void createNewUser(Account account) {
+    public void createNewAccount(Account account) {
         if(account.getName() == null ||
                 account.getName().trim().isEmpty() ||
                 account.getEmail() == null ||
@@ -43,13 +43,11 @@ public class AccountService implements IAccountService {
         }
 
         // TODO geht das hier auch ohne 2 mal account speichern
-
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
         accountRepo.save(account);
 
         fileSystemService.giveAccountRootFolder(account);
-
         accountRepo.save(account);
 
     }

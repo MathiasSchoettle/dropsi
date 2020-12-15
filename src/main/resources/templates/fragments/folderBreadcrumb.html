@@ -1,7 +1,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <ul th:fragment="folder_breadcrumb(folder)" th:unless="${folder.parent == null}" th:remove="tag">
-        <div th:replace="fragments/folderBreadcrumb :: folder_breadcrumb(${folder.parent})"></div>
-        <li class="breadcrumb-item"><a class="text-white" th:href="@{/folder/{folderId}(folderId = ${folder.parent.id})}" th:text="${folder.parent.name}"></a></li>
-    </ul>
-</head>
+<ul th:fragment="folder_breadcrumb(folder)" th:unless="${folder.parent == null}" th:remove="tag">
+    <div th:replace="fragments/folderBreadcrumb :: folder_breadcrumb(${folder.parent})"></div>
+    <li class="breadcrumb-item"><a class="text-white" th:href="@{/folder/{folderId}(folderId = ${folder.parent.id})}"
+                                   th:text="${folder.parent.name}"></a></li>
+</ul>
+</html>

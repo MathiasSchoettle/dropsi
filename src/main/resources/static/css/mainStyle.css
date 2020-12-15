@@ -46,7 +46,6 @@
 }
 
 .file-view-container:hover {
-    background-color: #242529;
 }
 
 .file-icon {
@@ -75,4 +74,16 @@
     font-size: 12px;
     line-height: 20px;
     color: grey;
+}
+
+.file-edit-icon {
+    cursor: pointer;
+    margin: 6px 0;
+    padding: 4px 8px;
+    line-height: 30px !important;
+    border-radius: 5px;
+}
+
+.file-edit-icon:hover {
+    background-color: rgba(0,0,0,0.3);
 }

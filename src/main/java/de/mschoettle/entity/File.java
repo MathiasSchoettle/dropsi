@@ -14,25 +14,9 @@ public class File extends FileSystemObject {
 
     public File(){}
 
-    public File(String name, long fileSize, Account owner, Folder parent, String fileType, String fileReference){
+    public File(String name, long fileSize, Account owner, Folder parent, String fileType){
         super(name, fileSize, owner, parent);
         this.fileType = fileType;
-        this.fileReference = fileReference;
-    }
-
-    @Override
-    public void move() {
-        // TODO implement
-    }
-
-    @Override
-    public void copy() {
-        // TODO implement
-    }
-
-    @Override
-    public void delete() {
-        // TODO implement
     }
 
     @Override
@@ -46,5 +30,13 @@ public class File extends FileSystemObject {
 
     public String getFileReference() {
         return fileReference;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public void setFileReference(String fileReference) {
+        this.fileReference = fileReference;
     }
 }
