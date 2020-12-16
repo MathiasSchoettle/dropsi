@@ -11,6 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PreRemove;
+import java.security.Principal;
+
 @Controller
 @Scope("session")
 public class LoginController {
@@ -34,10 +37,10 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/deleteAccount")
-    public String deleteAccount(Model model) {
-        accountService.deleteAccount(mainController.getAuthenticatedAccount());
-        model.addAttribute("usernameOrPasswordIsWrong", false);
+    public String deleteAccount(Model model, Principal principal) {
         SecurityContextHolder.getContext().setAuthentication(null);
+        accountService.deleteAccount(mainController.getAuthenticatedAccount(principal));
+        model.addAttribute("usernameOrPasswordIsWrong", false);
         return "login";
     }
 }

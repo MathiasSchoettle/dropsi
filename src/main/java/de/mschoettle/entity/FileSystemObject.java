@@ -1,5 +1,7 @@
 package de.mschoettle.entity;
 
+import org.springframework.lang.NonNull;
+
 import javax.persistence.*;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -30,7 +32,7 @@ public abstract class FileSystemObject {
     @ManyToOne
     private Account owner = null;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Folder parent = null;
 
     @OneToMany(mappedBy = "reference")
@@ -67,22 +69,22 @@ public abstract class FileSystemObject {
         return dtf.format(this.creationDate);
     }
 
-    // TODO make this nicer
+    // TODO rethink this
     public String getPrettyFileSize() {
 
         StringBuilder sb = new StringBuilder();
         DecimalFormat df2 = new DecimalFormat("0.00");
 
-        if(fileSize > 1000000000d) {
-            sb.append(df2.format((double) fileSize / 1000000000d));
+        if(fileSize > 1073741824d) {
+            sb.append(df2.format((double) fileSize / 1073741824d));
             sb.append(" GB");
         }
-        else if(fileSize > 1000000d) {
-            sb.append(df2.format((double) fileSize / 1000000d));
+        else if(fileSize > 1048576d) {
+            sb.append(df2.format((double) fileSize / 1048576d));
             sb.append(" MB");
         }
-        else if(fileSize > 1000d) {
-            sb.append(df2.format((double) fileSize / 1000d));
+        else if(fileSize > 1024d) {
+            sb.append(df2.format((double) fileSize / 1024d));
             sb.append(" KB");
         }
         else {

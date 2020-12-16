@@ -8,7 +8,7 @@
         <i th:unless="${fileSystemObject.isFolder()}" class='material-icons file-icon'>description</i>
 
         <a th:if="${fileSystemObject.isFolder()}"
-           th:href="@{/folder/{folderId}(folderId = ${fileSystemObject.id})}"
+           th:href="@{/folder(folderId=${fileSystemObject.id})}"
            class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
         <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name"
            th:text="${fileSystemObject.name}"></a>
@@ -18,9 +18,12 @@
     <div class="d-flex flex-row justify-content-around mr-3">
         <i class="material-icons file-edit-icon text-dark">content_copy</i>
         <i class="material-icons file-edit-icon text-dark">exit_to_app</i>
-        <a class="text-white" th:href="@{/deleteFileSystemObject/{fileSystemObjectId}(fileSystemObjectId = ${fileSystemObject.id})}">
-            <i class="material-icons file-edit-icon">delete_outline</i>
-        </a>
+
+        <form th:action="@{/filesystemobject(folderId=${fileSystemObject.parent.id}, fileSystemObjectId=${fileSystemObject.id})}" th:method="DELETE">
+            <button type="submit" style="all: unset" class="text-white">
+                <i class="material-icons file-edit-icon">delete_outline</i>
+            </button>
+        </form>
     </div>
 
     <div class=" d-flex flex-column pr-5" style="width: 150px;">

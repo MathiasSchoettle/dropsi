@@ -3,7 +3,6 @@ package de.mschoettle.boundary.controller;
 import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IInternalFileSystemService;
 import de.mschoettle.entity.Account;
-import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,59 +25,57 @@ public class MainController {
     @Autowired
     private IInternalFileSystemService fileSystemService;
 
-    private Account authenticatedAccount;
-
-    private Folder currentFolder;
-
-    @RequestMapping(value = "/main")
+    @RequestMapping(value = "/main", method = RequestMethod.GET)
     public String showMain(Model model, Principal principal) {
-        authenticatedAccount = (Account) accountService.loadUserByUsername(principal.getName());
-        currentFolder = authenticatedAccount.getRootFolder();
-        model.addAttribute("currentFolder", currentFolder);
+        model.addAttribute("currentFolder", getRootFolderOfPrincipal(principal));
         return "main";
     }
 
-    @RequestMapping(value = "/folder/{folderId}")
-    public String changeCurrentFolder(Model model, @PathVariable("folderId") long folderId) {
-
-        Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, authenticatedAccount);
-
-        // if folder doesn't exist show last folder
-        currentFolder = (Folder) folderOptional.orElseGet(() -> currentFolder);
-        model.addAttribute("currentFolder", currentFolder);
+    @RequestMapping(value = "/folder", method = RequestMethod.GET)
+    public String showFolder(Model model, Principal principal, @RequestParam("folderId") long folderId) {
+        addFolderToModel(model, principal, folderId);
         return "main";
     }
 
-    @RequestMapping(value = "/addFolder", method = RequestMethod.POST)
-    public String addNewFolder(@ModelAttribute Folder folderToAdd, Model model) {
-        fileSystemService.addNewFolderToFolder(authenticatedAccount, currentFolder, folderToAdd.getName());
+    @RequestMapping(value = "/folder", method = RequestMethod.POST)
+    public String addFolder(Model model, Principal principal, @RequestParam("folderId") long folderId,  @ModelAttribute("folderName") String folderName) {
+        fileSystemService.addNewFolderToFolder(getAuthenticatedAccount(principal), folderId, folderName);
+        addFolderToModel(model, principal, folderId);
         return "main";
     }
 
-    @RequestMapping(value = "/deleteFileSystemObject/{fileSystemObjectId}")
-    public String deleteFileSystemObject(@ModelAttribute Folder folderToAdd, Model model,  @PathVariable("fileSystemObjectId") long fileSystemObjectId) {
-        fileSystemService.deleteFileSystemObject(authenticatedAccount, currentFolder, fileSystemObjectId);
+    @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
+    public String uploadFile(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("uploadedFile") MultipartFile[] files) {
+        fileSystemService.addFileToFolder(getAuthenticatedAccount(principal), folderId, files);
+        addFolderToModel(model, principal, folderId);
         return "main";
     }
 
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadFile(@RequestParam("uploadedFile") MultipartFile[] files, Model model) {
-        fileSystemService.addFileToFolder(authenticatedAccount, currentFolder, files);
+    @RequestMapping(value = "/filesystemobject", method = RequestMethod.DELETE)
+    public String deleteFileSystemObject(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("fileSystemObjectId") long fileSystemObjectId) {
+        fileSystemService.deleteFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
+        addFolderToModel(model, principal, folderId);
         return "main";
     }
 
-    @ModelAttribute("account")
-    public Account getAuthenticatedAccount() {
-        return authenticatedAccount != null ? authenticatedAccount : new Account();
+    /**
+     * Adds a folder with given folder id to the given model.
+     * If the folder does not exist or is not owned by the given principal the root folder of the principal is added.
+     *
+     * @param model the model the folder is added to
+     * @param principal the current principal
+     * @param folderId the folder id
+     */
+    private void addFolderToModel(Model model, Principal principal, long folderId) {
+        Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, getAuthenticatedAccount(principal));
+        model.addAttribute("currentFolder", (Folder) folderOptional.orElseGet(() -> getRootFolderOfPrincipal(principal)));
     }
 
-    @ModelAttribute("currentFolder")
-    public Folder getCurrentFolder() {
-        return currentFolder != null ? currentFolder : new Folder();
+    private Folder getRootFolderOfPrincipal(Principal principal) {
+        return getAuthenticatedAccount(principal).getRootFolder();
     }
 
-    @ModelAttribute("folderToAdd")
-    public Folder getFolderToAdd() {
-        return new Folder();
+    public Account getAuthenticatedAccount(Principal principal) {
+        return (Account) accountService.loadUserByUsername(principal.getName());
     }
 }

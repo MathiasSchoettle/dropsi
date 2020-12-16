@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.persistence.ManyToOne;
+import java.security.Principal;
 
 @Controller
 @Scope("session")
@@ -25,10 +26,10 @@ public class SettingsController {
     private MainController mainController;
 
     @RequestMapping(value = "/settings")
-    public String showSettings(Model model) {
+    public String showSettings(Model model, Principal principal) {
 
-        model.addAttribute("name", mainController.getAuthenticatedAccount().getName());
-        model.addAttribute("email", mainController.getAuthenticatedAccount().getEmail());
+        model.addAttribute("name", mainController.getAuthenticatedAccount(principal).getName());
+        model.addAttribute("email", mainController.getAuthenticatedAccount(principal).getEmail());
 
         model.addAttribute("triedToChangeUsername", false);
         model.addAttribute("changedUsername", false);
@@ -40,8 +41,9 @@ public class SettingsController {
         return "settings";
     }
 
+    // TODO refactor this maybe
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    public String saveSettings(@ModelAttribute Account account, Model model) {
+    public String saveSettings(Model model, Principal principal, @ModelAttribute Account account) {
 
         boolean triedToChangeUsername;
         boolean changedUsername = false;
@@ -49,21 +51,23 @@ public class SettingsController {
         boolean triedToChangeEmail;
         boolean changedEmail = false;
 
+        Account auhenticatedAccount = mainController.getAuthenticatedAccount(principal);
+
         if (triedToChangeUsername = !account.getName().trim().equals("")) {
             if (changedUsername = !accountService.isUsernameTaken(account.getName())) {
-                mainController.getAuthenticatedAccount().setName(account.getName());
+                auhenticatedAccount.setName(account.getName());
             }
         }
 
-        model.addAttribute("name", mainController.getAuthenticatedAccount().getName());
+        model.addAttribute("name", auhenticatedAccount.getName());
 
         if (triedToChangeEmail = !account.getEmail().trim().equals("")) {
             if (changedEmail = !accountService.isEmailTaken(account.getEmail())) {
-                mainController.getAuthenticatedAccount().setEmail(account.getEmail());
+                auhenticatedAccount.setEmail(account.getEmail());
             }
         }
 
-        model.addAttribute("email", mainController.getAuthenticatedAccount().getEmail());
+        model.addAttribute("email", auhenticatedAccount.getEmail());
 
         model.addAttribute("triedToChangeUsername", triedToChangeUsername);
         model.addAttribute("changedUsername", changedUsername);
@@ -72,7 +76,7 @@ public class SettingsController {
 
         model.addAttribute("account", new Account());
 
-        accountService.saveAccount(mainController.getAuthenticatedAccount());
+        accountService.saveAccount(auhenticatedAccount);
 
         return "settings";
     }

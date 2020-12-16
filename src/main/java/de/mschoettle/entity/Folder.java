@@ -1,8 +1,5 @@
 package de.mschoettle.entity;
 
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +9,8 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Folder extends FileSystemObject {
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    // TODO make this only go in one layer
+    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<FileSystemObject> contents = new ArrayList<>();
 
     public Folder(String name, long fileSize, Account owner, Folder parent) {
@@ -39,28 +37,13 @@ public class Folder extends FileSystemObject {
         this.contents.add(fileSystemObject);
     }
 
-    public boolean containsFileSystemObject(long fileSystemObjectId) {
-
-        for(FileSystemObject f : contents) {
-            if(f.getId() == fileSystemObjectId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public void removeFileSystemObject(long fileSystemObjectId) {
-
         for(FileSystemObject f : contents) {
             if(f.getId() == fileSystemObjectId) {
-                boolean wasRemoved = contents.remove(f);
-                System.out.println("removed fileSystemObject " + f.getName() + " " + f.getId() + " from folder " + this.getName() + ". Was removed = " + wasRemoved);
+                contents.remove(f);
                 return;
             }
         }
-
-        System.out.println("nichts wurde deleted");
     }
 
     @Override

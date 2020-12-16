@@ -7,6 +7,7 @@
 - change all methods used in main controller from service to remove unnecessary saves and updates
 
 ## PRIO 2 ##
+- add Transactional methods where needed even if its the same as default
 - when a new folder is built check if a folder with same name exists and if yes rename to name(x)
 - when a file with same name is uploaded rename to name(x)
 

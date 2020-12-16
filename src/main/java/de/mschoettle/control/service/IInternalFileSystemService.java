@@ -12,13 +12,13 @@ public interface IInternalFileSystemService extends IFileSystemService {
 
     void saveFileSystemObject(FileSystemObject fileSystemObject);
 
-    void deleteFileSystemObject(Account account, Folder parent, long fileSystemObjectId);
+    void deleteFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId);
 
     void giveAccountRootFolder(Account account);
 
-    void addNewFolderToFolder(Account account, Folder parentFolder, String childFolderName);
+    void addNewFolderToFolder(Account account, long parentFolderId, String childFolderName);
 
-    void addFileToFolder(Account account, Folder parentFolder, MultipartFile[] files);
+    void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files);
 
     Optional<FileSystemObject> getFileSystemObjectById(long id, Account account);
 
