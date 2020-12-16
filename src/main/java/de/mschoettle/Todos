@@ -1,10 +1,6 @@
 
 ## PRIO 1 ##
-- Refactor MainController so its stateless
 - rename main to something more telling
-- rename paths to controller methods to be compliant with standard
-- add Get psot update delete methods to controller methods -> dont need as many URIs
-- change all methods used in main controller from service to remove unnecessary saves and updates
 
 ## PRIO 2 ##
 - add Transactional methods where needed even if its the same as default
