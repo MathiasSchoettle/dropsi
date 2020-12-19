@@ -1,13 +1,15 @@
 package de.mschoettle.control.service.impl;
 
+import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IInternalFileSystemService;
-import de.mschoettle.entity.Account;
-import de.mschoettle.entity.File;
-import de.mschoettle.entity.FileSystemObject;
-import de.mschoettle.entity.Folder;
-import de.mschoettle.entity.repository.IAccountRepository;
+import de.mschoettle.entity.*;
+import de.mschoettle.entity.repository.IAccessLogEntryRepository;
 import de.mschoettle.entity.repository.IFileSystemObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,19 +23,20 @@ import java.util.Optional;
 @Service
 public class InternalFileSystemService implements IInternalFileSystemService {
 
-    @Autowired
     private IFileSystemObjectRepository fileSystemObjectRepository;
 
+    private IAccessLogEntryRepository accessLogEntryRepository;
+
+    private IAccountService accountService;
+
     @Autowired
-    private IAccountRepository accountRepository;
+    public void setInjectedBean(IAccountService accountService,
+                                IAccessLogEntryRepository accessLogEntryRepository,
+                                IFileSystemObjectRepository fileSystemObjectRepository) {
 
-    public void saveFileSystemObject(FileSystemObject fileSystemObject) {
-
-        if (fileSystemObject == null) {
-            throw new IllegalArgumentException("fileSystemObject is null");
-        }
-
-        fileSystemObjectRepository.save(fileSystemObject);
+        this.accountService = accountService;
+        this.accessLogEntryRepository = accessLogEntryRepository;
+        this.fileSystemObjectRepository = fileSystemObjectRepository;
     }
 
     @Override
@@ -41,30 +44,11 @@ public class InternalFileSystemService implements IInternalFileSystemService {
     public void deleteFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId) {
 
         Folder parentFolder = getFolder(account, parentFolderId);
-        FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
-
-        // if file is deleted the real file in the server filesystem also needs to be removed
-        if(fileSystemObject instanceof File) {
-            deleteFileFromServerFilesystem(((File) fileSystemObject).getFileReference());
-        }
-
-        // remove fileSystemObject from parent list
-        parentFolder.removeFileSystemObject(fileSystemObjectId);
-
-        // save parent and hibernate will remove the foreign key from child
+        String childName = parentFolder.removeFileSystemObject(fileSystemObjectId);
         saveFileSystemObject(parentFolder);
-
         fileSystemObjectRepository.deleteById(fileSystemObjectId);
-
+        addAccessLogEntry(account, parentFolder, AccessType.EDITED, "Deleted child " + childName);
         recalculateSize(parentFolder);
-    }
-
-    private void deleteFileFromServerFilesystem(String fileRef) {
-        try {
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", fileRef));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -80,9 +64,21 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         }
 
         Folder rootFolder = new Folder("root", 0, account, null);
-        fileSystemObjectRepository.save(new Folder("root", 0, account, null));
+        saveFileSystemObject(rootFolder);
+        addAccessLogEntry(account, rootFolder, AccessType.CREATED, "created Folder " + rootFolder.getName());
+        saveFileSystemObject(rootFolder);
+
         account.setRootFolder(rootFolder);
-        accountRepository.save(account);
+        accountService.saveAccount(account);
+    }
+
+    @Override
+    @Transactional
+    public void deleteRootFolderOfAccount(Account account) {
+        Folder rootFolder = account.getRootFolder();
+        account.setRootFolder(null);
+        accountService.saveAccount(account);
+        fileSystemObjectRepository.delete(rootFolder);
     }
 
     @Override
@@ -96,16 +92,18 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         Folder parentFolder = getFolder(account, parentFolderId);
 
         Folder folderToAdd = new Folder(childFolderName, 0, account, parentFolder);
+        addAccessLogEntry(account, folderToAdd, AccessType.CREATED, "Created Folder " + childFolderName);
         saveFileSystemObject(folderToAdd);
 
         parentFolder.addFileSystemObject(folderToAdd);
+        addAccessLogEntry(account, parentFolder, AccessType.EDITED, "Added new child folder " + childFolderName);
         saveFileSystemObject(parentFolder);
     }
 
-    // TODO this has to be done different at some time
+    // TODO refactor this, multiple files or even directories
     @Override
     @Transactional
-    public void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) {
+    public void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) throws IOException {
 
         Folder parentFolder = getFolder(account, parentFolderId);
 
@@ -119,28 +117,49 @@ public class InternalFileSystemService implements IInternalFileSystemService {
             throw new IllegalArgumentException("MultiPartFiles name was null or empty");
         }
 
-        File file = new File(f.getOriginalFilename(), f.getSize(), account, parentFolder, f.getContentType());
+        // remove file extension
+        String name = f.getOriginalFilename();
+        String extension = "";
+        if(name.indexOf(".") > 0) {
+            extension = name.substring(name.lastIndexOf(".") + 1);
+            name = name.substring(0 , name.lastIndexOf("."));
+        }
+
+        File file = new File(name, f.getSize(), account, parentFolder, extension, f.getContentType());
         saveFileSystemObject(file);
 
         // TODO what should the fileRef actually be, is only id sufficient?
-        String fileRef = file.getId() + "_" + file.getName();
+        String fileRef = file.getId() + "";
+        addAccessLogEntry(account, file, AccessType.CREATED, "Created File " + file.getName());
         file.setFileReference(fileRef);
         saveFileSystemObject(file);
+
         parentFolder.addFileSystemObject(file);
-
-        saveFileSystemObject(parentFolder);
-
+        addAccessLogEntry(account, parentFolder, AccessType.EDITED, "Added new File " + file.getName());
         recalculateSize(parentFolder);
 
-        try {
-            // TODO make this constant somewhere
-            Files.write(Paths.get(System.getProperty("user.dir"), "files", fileRef), f.getBytes(), StandardOpenOption.CREATE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // TODO make this constant somewhere
+        Files.write(Paths.get(System.getProperty("user.dir"), "files", fileRef), f.getBytes(), StandardOpenOption.CREATE);
+    }
+
+    @Override
+    public ResponseEntity<ByteArrayResource> getFileResponseEntity(Account account, long fileSystemObjectId) throws IOException {
+
+        File file = getFile(account, fileSystemObjectId);
+        addAccessLogEntry(account, file, AccessType.DOWNLAODED, "Downloaded by " + account.getName());
+
+        byte[] data = Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", file.getFileReference()));
+        HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.toString());
+        ByteArrayResource resource = new ByteArrayResource(data);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(data.length)
+                .contentType(MediaType.valueOf(file.getFileType()))
+                .body(resource);
     }
 
     @Transactional
+    @Override
     public FileSystemObject getFileSystemObject(Account account, long fileSystemObjectId) {
 
         FileSystemObject fileSystemObject = fileSystemObjectRepository.findById(fileSystemObjectId).orElseThrow(
@@ -154,6 +173,7 @@ public class InternalFileSystemService implements IInternalFileSystemService {
     }
 
     @Transactional
+    @Override
     public Folder getFolder(Account account, long folderId) {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, folderId);
@@ -166,6 +186,7 @@ public class InternalFileSystemService implements IInternalFileSystemService {
     }
 
     @Transactional
+    @Override
     public File getFile(Account account, long fileId) {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileId);
@@ -175,6 +196,16 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         }
 
         return (File) fileSystemObject;
+    }
+
+    @Transactional
+    public void saveFileSystemObject(FileSystemObject fileSystemObject) {
+
+        if (fileSystemObject == null) {
+            throw new IllegalArgumentException("fileSystemObject is null");
+        }
+
+        fileSystemObjectRepository.save(fileSystemObject);
     }
 
     @Override
@@ -199,5 +230,51 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         if (folder.getParent() != null) {
             recalculateSize(folder.getParent());
         }
+    }
+
+    @Override
+    @Transactional
+    public void changeNameOfFileSystemObject(long fileSystemObjectId, Account account, String name) {
+
+        // TODO input validation
+
+        if(name != null && !name.trim().isEmpty()) {
+            FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
+            String oldName = fileSystemObject.getName();
+
+            if(oldName.equals(name)) {
+                return;
+            }
+
+            fileSystemObject.setName(name);
+            addAccessLogEntry(account, fileSystemObject, AccessType.EDITED, "Changed name from " + oldName + " to " + fileSystemObject.getName());
+            saveFileSystemObject(fileSystemObject);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void addAccessLogEntry(Account account, FileSystemObject fileSystemObject, AccessType accessType, String comment) {
+
+        if(fileSystemObject == null) {
+            throw new IllegalArgumentException("FileSystemObject is null");
+        }
+
+        if(!fileSystemObject.getOwner().equals(account)) {
+            throw new IllegalArgumentException("Account doesn't own FileSystemObject");
+        }
+
+        if(comment == null || comment.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment is null or empty");
+        }
+
+        // TODO check this somewhere else maybe? or add boolean to foler isRootFolder
+        // don't add AccessLogEntries to root folder -> are not accessible for user anyways
+        if(fileSystemObject.getParent() == null) {
+            return;
+        }
+
+        AccessLogEntry accessLogEntry = new AccessLogEntry(fileSystemObject, accessType, comment);
+        accessLogEntryRepository.save(accessLogEntry);
     }
 }

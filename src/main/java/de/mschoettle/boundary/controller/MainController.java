@@ -2,16 +2,20 @@ package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.entity.AccessLogEntry;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -38,14 +42,19 @@ public class MainController {
     }
 
     @RequestMapping(value = "/folder", method = RequestMethod.POST)
-    public String addFolder(Model model, Principal principal, @RequestParam("folderId") long folderId,  @ModelAttribute("folderName") String folderName) {
+    public String addFolder(Model model, Principal principal, @RequestParam("folderId") long folderId, @ModelAttribute("folderName") String folderName) {
         fileSystemService.addNewFolderToFolder(getAuthenticatedAccount(principal), folderId, folderName);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
 
+    @RequestMapping(value = "/filesystemobject", method = RequestMethod.GET)
+    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("fileId") long fileId) throws IOException {
+        return fileSystemService.getFileResponseEntity(getAuthenticatedAccount(principal), fileId);
+    }
+
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
-    public String uploadFile(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("uploadedFile") MultipartFile[] files) {
+    public String uploadFile(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("uploadedFile") MultipartFile[] files) throws IOException {
         fileSystemService.addFileToFolder(getAuthenticatedAccount(principal), folderId, files);
         addFolderToModel(model, principal, folderId);
         return "main";
@@ -62,12 +71,13 @@ public class MainController {
      * Adds a folder with given folder id to the given model.
      * If the folder does not exist or is not owned by the given principal the root folder of the principal is added.
      *
-     * @param model the model the folder is added to
+     * @param model     the model the folder is added to
      * @param principal the current principal
-     * @param folderId the folder id
+     * @param folderId  the folder id
      */
     private void addFolderToModel(Model model, Principal principal, long folderId) {
         Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, getAuthenticatedAccount(principal));
+        // cast to folder so there are less thymeleaf errors
         model.addAttribute("currentFolder", (Folder) folderOptional.orElseGet(() -> getRootFolderOfPrincipal(principal)));
     }
 

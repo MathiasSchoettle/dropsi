@@ -14,7 +14,8 @@
         <div class="form-container p-3 row">
             <div class="col p-0 m-0">
 
-                <form class="text-white" method="post">
+                <form th:action="@{/editInfo(fileSystemObjectId=${fileSystemObject.id})}" class="text-white"
+                      th:method="PUT">
 
                     <div class="d-flex flex-row justify-content-start ml-2">
                         <p class="h1">EDIT & INFO</p>
@@ -22,11 +23,16 @@
 
                     <hr/>
 
-                    <p class="h5 ml-2">Edit Folder Name</p>
+                    <p th:if="${fileSystemObject.isFolder()}" class="h5 ml-2">Edit Folder Name</p>
+                    <p th:unless="${fileSystemObject.isFolder()}" class="h5 ml-2">Edit File Name</p>
 
                     <div class="form-group input-container">
-                        <label for="folderNameInput" class="input-label">Folder name</label>
-                        <input type="text" class="form-control input-field" id="folderNameInput">
+                        <label th:if="${fileSystemObject.isFolder()}" for="fileSystemObjectNameInput"
+                               class="input-label">Folder name</label>
+                        <label th:unless="${fileSystemObject.isFolder()}" for="fileSystemObjectNameInput"
+                               class="input-label">File name</label>
+                        <input type="text" class="form-control input-field w-100" id="fileSystemObjectNameInput"
+                               th:name="folderName">
                     </div>
 
                     <button type="submit" class="btn btn-block btn-success">Save</button>
@@ -41,45 +47,51 @@
                     <tbody>
                     <tr>
                         <td class="font-weight-bold">Name:</td>
-                        <td>Semester 8</td>
+                        <td th:text="${fileSystemObject.name}"></td>
                     </tr>
                     <tr>
                         <td class="font-weight-bold">Filesize:</td>
-                        <td>30 kB</td>
+                        <td th:text="${fileSystemObject.getPrettyFileSize()}"></td>
                     </tr>
                     <tr>
                         <td class="font-weight-bold">Creation Date</td>
-                        <td>12.10.2020</td>
+                        <td th:text="${fileSystemObject.getPrettyCreationDate()}"></td>
                     </tr>
                     <tr>
                         <td class="font-weight-bold">Last Update Date</td>
-                        <td>15.10.2020</td>
+                        <td th:text="${fileSystemObject.getPrettyLastUpdateDate()}"></td>
                     </tr>
                     </tbody>
                 </table>
 
             </div>
-            <div class="m-0 p-0 col" >
+            <div class="m-0 p-0 col">
                 <div class="d-flex flex-row justify-content-end ml-2">
-                    <a th:href="@{/main}">
+                    <a th:href="@{/folder(folderId=${fileSystemObject.parent.id})}">
                         <i class='material-icons text-white top-bar-icon'>close</i>
                     </a>
                 </div>
 
-                <div class="d-flex flex-row pt-3 ml-3" style="height: 480px;">
-                    <div class="p2 overflow-auto" style="background-color: #2e2f34; border-radius: 10px;">
+                <div class="d-flex flex-column">
 
-                        <div class="d-flex flex-row justify-content-between m-2 p-2 text-white rounded" style="background-color: #242529;">
-                            <div class="flex-nowrap mr-4 font-weight-bold" style="white-space: nowrap;">
-                                21.07.2020 - 10:30
+                    <p class="h5 ml-4 text-white">Additional Info</p>
+
+                    <div class="d-flex flex-row ml-3" style="height: 450px;">
+
+                        <div class="p2 overflow-auto"
+                             style="background-color: #2e2f34; border-radius: 10px;">
+
+                            <div th:each="accessLog: ${fileSystemObject.accessLogs}" class="d-flex flex-row justify-content-between m-2 p-2 text-white rounded"
+                                 style="background-color: #242529;">
+                                <div class="flex-nowrap mr-4 font-weight-bold" style="white-space: nowrap;"
+                                     th:text="${accessLog.getPrettyCreationDate()}"></div>
+                                <div style="white-space: nowrap;" th:text="${accessLog.comment}"></div>
                             </div>
-                            <div style="white-space: nowrap;">
-                                Downloaded by Frederik
-                            </div>
+
                         </div>
-
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

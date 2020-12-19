@@ -1,16 +1,13 @@
 package de.mschoettle.entity;
 
-import org.springframework.lang.NonNull;
+import com.sun.source.tree.Tree;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.text.DecimalFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -35,13 +32,15 @@ public abstract class FileSystemObject {
     @ManyToOne(fetch = FetchType.EAGER)
     private Folder parent = null;
 
-    @OneToMany(mappedBy = "reference")
+    @SortNatural
+    @OrderBy("creationDate DESC")
+    @OneToMany(mappedBy = "reference", cascade = CascadeType.REMOVE)
     private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "shared")
     private List<Permission> permissions = new ArrayList<>();
 
-    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy");
+    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
 
     public FileSystemObject(){}
 
@@ -52,8 +51,19 @@ public abstract class FileSystemObject {
         this.fileSize = fileSize;
         this.owner = owner;
         this.parent = parent;
-        this.accessLogs = new ArrayList<>();
-        this.permissions = new ArrayList<>();
+    }
+
+    public void addAccessLogEntry(AccessLogEntry accessLogEntry) {
+
+        if(accessLogEntry == null) {
+            throw new IllegalArgumentException("AccessLogEntry was null");
+        }
+
+        if(accessLogs.contains(accessLogEntry)) {
+            throw new IllegalArgumentException("Duplicate AccessLogEntry: " + accessLogEntry);
+        }
+
+        accessLogs.add(0, accessLogEntry);
     }
 
     // TODO das hier ist mal wieder absoluter schmu, aber ich weiß ned wies anders geht weil ich thymeleaf ned kann lul

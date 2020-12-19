@@ -30,7 +30,7 @@ public class Account implements UserDetails {
 
     private String securityToken;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.REMOVE)
     private Folder rootFolder;
 
     @OneToMany(mappedBy = "receiver")
@@ -178,5 +178,10 @@ public class Account implements UserDetails {
 
     public void setRootFolder(Folder rootFolder) {
         this.rootFolder = rootFolder;
+    }
+
+    public static void main(String[] args) {
+
+
     }
 }

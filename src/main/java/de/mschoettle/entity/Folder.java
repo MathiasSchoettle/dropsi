@@ -37,13 +37,15 @@ public class Folder extends FileSystemObject {
         this.contents.add(fileSystemObject);
     }
 
-    public void removeFileSystemObject(long fileSystemObjectId) {
+    public String removeFileSystemObject(long fileSystemObjectId) {
         for(FileSystemObject f : contents) {
             if(f.getId() == fileSystemObjectId) {
                 contents.remove(f);
-                return;
+                return f.getName();
             }
         }
+
+        return "";
     }
 
     @Override

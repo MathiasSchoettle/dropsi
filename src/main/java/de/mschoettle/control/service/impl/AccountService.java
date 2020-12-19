@@ -1,7 +1,9 @@
 package de.mschoettle.control.service.impl;
 
 import de.mschoettle.control.service.IAccountService;
+import de.mschoettle.control.service.IInternalFileSystemService;
 import de.mschoettle.entity.Account;
+import de.mschoettle.entity.Folder;
 import de.mschoettle.entity.repository.IAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,7 +17,7 @@ import java.time.LocalDate;
 public class AccountService implements IAccountService {
 
     @Autowired
-    private InternalFileSystemService fileSystemService;
+    private IInternalFileSystemService fileSystemService;
 
     @Autowired
     private IAccountRepository accountRepo;
@@ -46,10 +48,7 @@ public class AccountService implements IAccountService {
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
         accountRepo.save(account);
-
         fileSystemService.giveAccountRootFolder(account);
-        accountRepo.save(account);
-
     }
 
     private void hashPasswordOfAccount(Account account) {

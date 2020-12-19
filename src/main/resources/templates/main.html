@@ -22,7 +22,7 @@
                 </a>
 
                 <ul class="navbar-nav">
-                    <li class="nav-item active float-left">
+                    <li class="nav-item active float-left ">
                         <a class="nav-link" href="#">My Files</a>
                     </li>
                     <li class="nav-item">
@@ -34,9 +34,9 @@
                 </ul>
             </div>
 
-            <a class="btn btn-block btn-danger" th:href="@{/logout}" role="button" th:text="Logout"></a>
-
-            <hr/>
+            <a class="btn btn-block btn-dark mb-5"  data-toggle="tooltip" data-placement="right" title="Logout" th:href="@{/logout}" role="button">
+                <i class="material-icons">login</i>
+            </a>
         </nav>
 
         <div class="h-100 col p-0 d-flex flex-column">
@@ -53,8 +53,8 @@
                     </ol>
                 </div>
 
-                <a th:href="@{/settings}">
-                    <i class='material-icons text-white top-bar-icon'>settings</i>
+                <a th:href="@{/settings}" >
+                    <i class='material-icons text-white top-bar-icon'>account_circle</i>
                 </a>
 
             </div>
@@ -64,7 +64,7 @@
                  style="background-color: #2e2f34; border-top-left-radius: 20px;">
 
                 <!-- entries -->
-                <div class="row mt-2 ml-0 pl-3 d-flex flex-row file-view-container" style="overflow: hidden"
+                <div class="row mt-2 ml-0 pl-3 d-flex flex-row file-view-container"
                      th:each="fileSystemObject: ${currentFolder.contents}">
                     <div th:replace="fragments/fileSystemObjectEntry :: fileSystemObjectEntry(${fileSystemObject})"></div>
                 </div>
@@ -73,14 +73,14 @@
                     <!-- add folder button -->
                     <div class="file-view-container d-flex justify-content-center" data-toggle="modal"
                          data-target="#newFolderModal" style="width: 50px; cursor: pointer">
-                        <i class='material-icons file-icon'>create_new_folder</i>
+                        <i class='material-icons file-icon' data-toggle="tooltip" data-placement="bottom" title="Add a new Folder">create_new_folder</i>
                     </div>
 
                     <!-- upload file -->
                     <div class="file-view-container d-flex ml-2 d-inline-block justify-content-center"
                          data-toggle="modal"
                          data-target="#uploadFileModal" style="width: 50px; cursor: pointer">
-                        <i class='material-icons file-icon'>publish</i>
+                        <i class='material-icons file-icon' data-toggle="tooltip" data-placement="bottom" title="Upload a File">publish</i>
                     </div>
                 </div>
 
@@ -107,7 +107,7 @@
 
                                     <div class="custom-file">
                                         <label class="custom-file-label" for="uploadedFile">Choose file</label>
-                                        <input type="file" th:name="uploadedFile" class="custom-file-input"
+                                        <input type="file" th:name="uploadedFile" class="custom-file-input" required
                                                id="uploadedFile">
                                     </div>
                                 </div>

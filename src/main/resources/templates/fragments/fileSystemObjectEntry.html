@@ -10,20 +10,52 @@
         <a th:if="${fileSystemObject.isFolder()}"
            th:href="@{/folder(folderId=${fileSystemObject.id})}"
            class="flex-grow-1 file-name stretched-link" th:text="${fileSystemObject.name}"></a>
-        <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name"
+        <a th:unless="${fileSystemObject.isFolder()}" href="#" class="flex-grow-1 file-name stretched-link"
            th:text="${fileSystemObject.name}"></a>
     </div>
 
-
     <div class="d-flex flex-row justify-content-around mr-3">
-        <i class="material-icons file-edit-icon text-dark">content_copy</i>
-        <i class="material-icons file-edit-icon text-dark">exit_to_app</i>
 
-        <form th:action="@{/filesystemobject(folderId=${fileSystemObject.parent.id}, fileSystemObjectId=${fileSystemObject.id})}" th:method="DELETE">
+        <div>
+            <a th:unless="${fileSystemObject.isFolder()}" th:href="@{/filesystemobject(fileId=${fileSystemObject.id})}"
+               class="text-white">
+                <i class="material-icons file-edit-icon">cloud_download</i>
+            </a>
+            <a th:if="${fileSystemObject.isFolder()}" href="#" class="text-white">
+                <i class="material-icons file-edit-icon text-dark">cloud_download</i>
+            </a>
+        </div>
+
+        <form th:action="@{/filesystemobject(folderId=${fileSystemObject.parent.id}, fileSystemObjectId=${fileSystemObject.id})}"
+              th:method="DELETE">
             <button type="submit" style="all: unset" class="text-white">
                 <i class="material-icons file-edit-icon">delete_outline</i>
             </button>
         </form>
+
+
+        <!-- Default dropleft button -->
+        <div class="btn-group dropleft">
+            <a class="text-white" style="all: unset" data-toggle="dropdown">
+                <i class="material-icons file-edit-icon">chevron_left</i>
+            </a>
+            <div class="dropdown-menu mr-0" style="background-color: #1d1e22; box-shadow: 0 0 15px 5px rgba(0,0,0,0.2);">
+
+                <a th:href="@{/editInfo(fileSystemObjectId=${fileSystemObject.id})}" class="dropdown-item dropdown-selected text-white">
+                    Edit & Info
+                </a>
+
+                <a href="#" class="dropdown-item dropdown-selected text-dark">
+                    Copy
+                </a>
+
+                <a href="#" class="dropdown-item dropdown-selected text-dark">
+                    Move
+                </a>
+
+            </div>
+        </div>
+
     </div>
 
     <div class=" d-flex flex-column pr-5" style="width: 150px;">

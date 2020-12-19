@@ -1,13 +1,19 @@
 package de.mschoettle.entity;
 
+import org.springframework.lang.NonNull;
+
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Objects;
 
 @Entity
-public class AccessLogEntry {
+public class AccessLogEntry implements Comparable<AccessLogEntry> {
 
     @Id
+    @GeneratedValue
     private long id;
 
     @ManyToOne
@@ -15,11 +21,24 @@ public class AccessLogEntry {
 
     private AccessType type;
 
-    private long fileSize;
+    private String comment;
 
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
+
+    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
 
     public AccessLogEntry(){}
+
+    public AccessLogEntry(FileSystemObject reference, AccessType type, String comment) {
+        this.reference = reference;
+        this.type = type;
+        this.comment = comment;
+        this.creationDate = LocalDateTime.now();
+    }
+
+    public String getPrettyCreationDate() {
+        return dtf.format(this.creationDate);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -34,6 +53,22 @@ public class AccessLogEntry {
         return Objects.hash(this.id);
     }
 
+    @Override
+    public int compareTo(AccessLogEntry accessLogEntry) {
+        return accessLogEntry.getCreationDate().compareTo(creationDate);
+    }
+
+    @Override
+    public String toString() {
+        return "AccessLogEntry{" +
+                "id=" + id +
+                "reference=" + reference +
+                ", type=" + type +
+                ", comment='" + comment + '\'' +
+                ", creationDate=" + creationDate +
+                '}';
+    }
+
     public long getId() {
         return id;
     }
@@ -46,11 +81,11 @@ public class AccessLogEntry {
         return type;
     }
 
-    public long getFileSize() {
-        return fileSize;
+    public String getComment() {
+        return comment;
     }
 
-    public LocalDate getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 }
