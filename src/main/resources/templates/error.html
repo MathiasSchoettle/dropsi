@@ -8,11 +8,11 @@
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
-    <div class="d-flex d-row justify-content-center" style="height: 100vh">
-        <div class="d-flex flex-column justify-content-center">
+    <div class="d-flex d-row justify-content-center" style="height: 100vh; background-color: #1d1e22">
+        <div class="d-flex flex-column justify-content-center text-white">
             <h3>Something went wrong</h3>
-            <img th:src="@{/img/dog.png}" alt="Responsive image">
-            <a th:href="@{/main}" class="btn btn-warning">Back to the main page</a>
+            <img th:src="@{/img/dog.png}" class="mt-5 mb-5" alt="Responsive image">
+            <a th:href="@{/main}" class="btn btn-dark">Back to the main page</a>
         </div>
     </div>
 </body>

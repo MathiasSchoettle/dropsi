@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
+    <link th:href="@{/css/modalStyle.css}" rel="stylesheet"/>
+    <title th:text="${'🖊️ - ' + fileSystemObject.name}"></title>
+    <title th:replace="fragments/bootstrap :: header"></title>
+</head>
+<body>
+<div class="container-fluid p-0 d-flex flex-row justify-content-center main-container">
+    <div class="d-flex flex-column justify-content-center">
+        <div class="form-container p-3 row">
+            <div class="col p-0 m-0">
+
+                <form class="text-white" method="post">
+
+                    <div class="d-flex flex-row justify-content-start ml-2">
+                        <p class="h1">EDIT & INFO</p>
+                    </div>
+
+                    <hr/>
+
+                    <p class="h5 ml-2">Edit Folder Name</p>
+
+                    <div class="form-group input-container">
+                        <label for="folderNameInput" class="input-label">Folder name</label>
+                        <input type="text" class="form-control input-field" id="folderNameInput">
+                    </div>
+
+                    <button type="submit" class="btn btn-block btn-success">Save</button>
+
+                </form>
+
+                <hr/>
+
+                <p class="h5 ml-2 text-white">Additional Info</p>
+
+                <table class="table m-0 text-white">
+                    <tbody>
+                    <tr>
+                        <td class="font-weight-bold">Name:</td>
+                        <td>Semester 8</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Filesize:</td>
+                        <td>30 kB</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Creation Date</td>
+                        <td>12.10.2020</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Last Update Date</td>
+                        <td>15.10.2020</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="m-0 p-0 col" >
+                <div class="d-flex flex-row justify-content-end ml-2">
+                    <a th:href="@{/main}">
+                        <i class='material-icons text-white top-bar-icon'>close</i>
+                    </a>
+                </div>
+
+                <div class="d-flex flex-row pt-3 ml-3" style="height: 480px;">
+                    <div class="p2 overflow-auto" style="background-color: #2e2f34; border-radius: 10px;">
+
+                        <div class="d-flex flex-row justify-content-between m-2 p-2 text-white rounded" style="background-color: #242529;">
+                            <div class="flex-nowrap mr-4 font-weight-bold" style="white-space: nowrap;">
+                                21.07.2020 - 10:30
+                            </div>
+                            <div style="white-space: nowrap;">
+                                Downloaded by Frederik
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

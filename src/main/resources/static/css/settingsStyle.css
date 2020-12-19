@@ -1,3 +1,14 @@
+::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+    background: #2e2f34;
+}
+::-webkit-scrollbar-thumb {
+    background: #1d1e22;
+}
+
 .main-container {
     background-color: #1d1e22;
     height: 100vh;
@@ -16,6 +27,7 @@
 }
 
 .input-label {
+    font-size: em;
     margin-left: 10px;
     margin-bottom: 0;
 }

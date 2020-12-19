@@ -6,7 +6,7 @@
     <link th:href="@{/css/mainStyle.css}" rel="stylesheet"/>
     <link th:href="@{/css/modalStyle.css}" rel="stylesheet"/>
     <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
-    <title>Main</title>
+    <title th:text="${'📁 - ' + currentFolder.name}"></title>
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body style="background-color: #1d1e22">
