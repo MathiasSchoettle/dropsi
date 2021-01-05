@@ -1,9 +1,13 @@
 package de.mschoettle.entity;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -26,23 +30,79 @@ public class Account implements UserDetails {
 
     private boolean isVerified;
 
-    private String avatar;
+    @Lob
+    private byte[] avatar;
 
     private String securityToken;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     private Folder rootFolder;
 
-    @OneToMany(mappedBy = "receiver")
-    private List<Permission> permissions;
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.EAGER)
+    private List<Permission> permissions = new ArrayList<>();
 
-    public Account(){}
+    public Account() {
+    }
 
     public Account(String name, String email, String hashedPassword) {
         this.name = name;
         this.email = email;
         this.creationDate = LocalDate.now();
         this.hashedPassword = hashedPassword;
+    }
+
+    public boolean hasPermission(FileSystemObject fileSystemObject) {
+        for (Permission p : permissions) {
+            if (p.getShared().equals(fileSystemObject)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void addPermission(Permission permission) {
+
+        if (permissions.contains(permission)) {
+            throw new IllegalArgumentException("Account already has permission");
+        }
+
+        this.permissions.add(permission);
+    }
+
+    public void removePermission(Permission permission) {
+        this.permissions.remove(permission);
+    }
+
+    public Map<Account, List<Permission>> getPermissionMap() {
+
+        Map<Account, List<Permission>> permissionMap = new HashMap<>();
+
+        for (Permission p : permissions) {
+            if (permissionMap.containsKey(p.getShared().getOwner())) {
+                permissionMap.get(p.getShared().getOwner()).add(p);
+            } else {
+                List<Permission> temp = new ArrayList<>();
+                temp.add(p);
+                permissionMap.put(p.getShared().getOwner(), temp);
+            }
+        }
+
+        return permissionMap;
+    }
+
+    public String getAvatarBytes() {
+
+        if(avatar == null) {
+            try {
+                File resource = new ClassPathResource("static/img/user.png").getFile();
+                return Base64.getEncoder().encodeToString(Files.readAllBytes(resource.toPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return Base64.getEncoder().encodeToString(avatar);
     }
 
     @Override
@@ -98,9 +158,6 @@ public class Account implements UserDetails {
         return "Account{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", creationDate=" + creationDate +
-                ", isVerified=" + isVerified +
                 '}';
     }
 
@@ -128,7 +185,7 @@ public class Account implements UserDetails {
         return isVerified;
     }
 
-    public String getAvatar() {
+    public byte[] getAvatar() {
         return avatar;
     }
 
@@ -168,7 +225,7 @@ public class Account implements UserDetails {
         isVerified = verified;
     }
 
-    public void setAvatar(String avatar) {
+    public void setAvatar(byte[] avatar) {
         this.avatar = avatar;
     }
 
@@ -178,10 +235,5 @@ public class Account implements UserDetails {
 
     public void setRootFolder(Folder rootFolder) {
         this.rootFolder = rootFolder;
-    }
-
-    public static void main(String[] args) {
-
-
     }
 }

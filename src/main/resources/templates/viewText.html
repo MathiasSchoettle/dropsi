@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Text</title>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-12 col-md-9 col-xl-6 flex-column d-flex mt-5 mb-5 bgdark bx-shdw r-lg">
+            <div class="d-flex flex-row justify-content-between mt-3 ml-2 mb-1 text-white">
+                <p class="h3 text-truncate">VIEW</p>
+                <a th:href="@{/main(folderId=${parentId})}">
+                    <i class='material-icons text-white top-bar-icon'>close</i>
+                </a>
+            </div>
+
+            <style>
+                ::-webkit-scrollbar:vertical {
+                    width: 10px;
+                }
+                ::-webkit-scrollbar-track:vertical {
+                    background-color: white;
+                }
+                ::-webkit-scrollbar-thumb:vertical {
+                    border: 3px solid white;
+                    background: #404040;
+                }
+            </style>
+
+            <div class="col bg-white mb-3 r-sm text-monospace pt-2 overflow-auto">
+                <p th:text="${text}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

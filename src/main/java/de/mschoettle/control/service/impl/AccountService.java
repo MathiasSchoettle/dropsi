@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @Qualifier("account")
@@ -71,6 +72,16 @@ public class AccountService implements IAccountService {
             throw new IllegalArgumentException("Username can not be null");
 
         return accountRepo.findByName(username).isPresent();
+    }
+
+    @Override
+    public Account getAccount(long id) {
+        return accountRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Account with given id does not exist"));
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        return (List<Account>) accountRepo.findAll();
     }
 
     @Override

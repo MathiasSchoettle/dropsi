@@ -1,14 +1,9 @@
 package de.mschoettle.entity;
 
-import de.mschoettle.control.service.IInternalFileSystemService;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.persistence.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -28,7 +23,7 @@ public class File extends FileSystemObject {
         this.fileType = fileType;
     }
 
-    // TODO do this manually in a service method
+    // TODO do this manually in a service method. Is it possible?
     @PreRemove
     public void preRemove() throws IOException {
         Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", fileReference));

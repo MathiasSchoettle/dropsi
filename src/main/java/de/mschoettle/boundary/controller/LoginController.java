@@ -24,6 +24,11 @@ public class LoginController {
     @Autowired
     private MainController mainController;
 
+    @RequestMapping(value ="/test")
+    public String test(Model model) {
+        return "test";
+    }
+
     @RequestMapping(value = {"/login", "/"})
     public String showLoginView(Model model) {
         model.addAttribute("usernameOrPasswordIsWrong", false);

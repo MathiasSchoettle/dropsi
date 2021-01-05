@@ -11,9 +11,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.ManyToOne;
+import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 
 @Controller
 @Scope("session")
@@ -43,7 +47,7 @@ public class SettingsController {
 
     // TODO refactor this maybe
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    public String saveSettings(Model model, Principal principal, @ModelAttribute Account account) {
+    public String saveSettings(Model model, Principal principal, @ModelAttribute Account account, @RequestParam("avatarImage") MultipartFile[] avatarImage) throws IOException {
 
         boolean triedToChangeUsername;
         boolean changedUsername = false;
@@ -75,6 +79,10 @@ public class SettingsController {
         model.addAttribute("changedEmail", changedEmail);
 
         model.addAttribute("account", new Account());
+
+        if(avatarImage.length > 0) {
+            auhenticatedAccount.setAvatar(avatarImage[0].getBytes());
+        }
 
         accountService.saveAccount(auhenticatedAccount);
 

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Move</title>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-12 col-md-12 col-xl-8 flex-column d-flex p-0 mt-auto mb-auto">
+            <div class="flex-row f-flex justify-content-center">
+                <div class="p-3 bgdark r-lg bx-shdw">
+
+                    <div class="d-flex flex-row justify-content-between ml-2 mb-1 text-white">
+                        <p th:if="${fileSystemObject.isFolder()}" class="h3 text-truncate"
+                           th:text="${'MOVE FOLDER ' + fileSystemObject.name}"></p>
+                        <p th:unless="${fileSystemObject.isFolder()}" class="h3 text-truncate"
+                           th:text="${'MOVE FILE ' + fileSystemObject.name}"></p>
+
+                        <a th:href="@{/main(folderId=${fileSystemObject.parent.id})}">
+                            <i class='material-icons text-white top-bar-icon'>close</i>
+                        </a>
+                    </div>
+
+                    <div class="bgmedium col p-2 flex-column d-flex r-md pb-2" style="height: 450px">
+
+                        <div class="d-flex flex-row mb-2">
+                            <a th:unless="${folder.parent == null}"
+                               th:href="@{/move(folderId=${folder.parent.id}, fileSystemObjectId=${fileSystemObject.id})}"
+                               class="bgdarker p-1 r-sm">
+                                <i class='material-icons text-white'>arrow_back</i>
+                            </a>
+
+                            <a th:if="${folder.parent == null}" class="bgdarker p-1 r-sm">
+                                <i class='material-icons text-secondary'>arrow_back</i>
+                            </a>
+
+                            <div class="ml-2 bgdarker r-sm text-white d-flex flex-column justify-content-center text-truncate">
+                                <div class="pl-3 pr-3 text-truncate" th:text="${folder.name}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row d-flex m-0 flex-column text-white">
+                            <div th:each="childFolder: ${folder.contents}" th:if="${childFolder.isFolder()}"
+                                 th:unless="${fileSystemObject.id == childFolder.id}"
+                                 class="col bgdarker p-1 mb-2 r-sm">
+                                <div class="d-flex flex-row justify-content-between">
+
+                                    <div class="d-flex flex-column justify-content-center ml-2 overflow-auto"
+                                         style="transform: rotate(0)">
+
+                                        <div class="flex-row d-flex">
+
+                                            <i class="d-flex flex-column justify-content-center material-icons text-white top-bar-icon">folder</i>
+
+                                            <a th:href="@{/move(folderId=${childFolder.id}, fileSystemObjectId=${fileSystemObject.id})}"
+                                               class="text-truncate stretched-link text-white ml-2"
+                                               th:text="${childFolder.name}">
+
+                                            </a>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-column mr-1">
+                                        <div class="d-flex flex-row justify-content-center text-nowrap f-sm"
+                                             th:text="${childFolder.getPrettyFileSize()}">
+                                        </div>
+
+                                        <div class="d-flex flex-row justify-content-center text-nowrap text-white-50 f-xs"
+                                             th:text="${childFolder.getPrettyCreationDate()}">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+
+                        <div class="col-6">
+                            <a th:href="@{/main(folderId=${fileSystemObject.parent.id})}"
+                               class="m-0 btn btn-danger btn-block">
+                                Cancel
+                            </a>
+                        </div>
+
+                        <div class="col-6">
+                            <form th:action="@{/filesystemobject(folderId=${folder.id}, fileSystemObjectId=${fileSystemObject.id})}"
+                                  th:method="PATCH">
+                                <button type="submit" class="m-0 btn btn-success btn-block">
+                                    Move
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

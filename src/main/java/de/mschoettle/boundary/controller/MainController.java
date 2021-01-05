@@ -29,13 +29,14 @@ public class MainController {
     @Autowired
     private IInternalFileSystemService fileSystemService;
 
-    @RequestMapping(value = "/main", method = RequestMethod.GET)
+    @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String showMain(Model model, Principal principal) {
         model.addAttribute("currentFolder", getRootFolderOfPrincipal(principal));
+        model.addAttribute("account", getAuthenticatedAccount(principal));
         return "main";
     }
 
-    @RequestMapping(value = "/folder", method = RequestMethod.GET)
+    @RequestMapping(value = "/main", method = RequestMethod.GET)
     public String showFolder(Model model, Principal principal, @RequestParam("folderId") long folderId) {
         addFolderToModel(model, principal, folderId);
         return "main";
@@ -48,9 +49,9 @@ public class MainController {
         return "main";
     }
 
-    @RequestMapping(value = "/filesystemobject", method = RequestMethod.GET)
-    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("fileId") long fileId) throws IOException {
-        return fileSystemService.getFileResponseEntity(getAuthenticatedAccount(principal), fileId);
+    @RequestMapping(value = "/fileSystemObject", method = RequestMethod.GET)
+    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws IOException {
+        return fileSystemService.getFileSystemObjectResponseEntity(getAuthenticatedAccount(principal), fileSystemObjectId);
     }
 
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
@@ -67,6 +68,13 @@ public class MainController {
         return "main";
     }
 
+    @RequestMapping(value = "/filesystemobject", method = RequestMethod.PATCH)
+    public String moveFileSystemObject(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("fileSystemObjectId") long fileSystemObjectId)  {
+        fileSystemService.moveFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
+        addFolderToModel(model, principal, folderId);
+        return "main";
+    }
+
     /**
      * Adds a folder with given folder id to the given model.
      * If the folder does not exist or is not owned by the given principal the root folder of the principal is added.
@@ -75,10 +83,11 @@ public class MainController {
      * @param principal the current principal
      * @param folderId  the folder id
      */
-    private void addFolderToModel(Model model, Principal principal, long folderId) {
+    public void addFolderToModel(Model model, Principal principal, long folderId) {
         Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, getAuthenticatedAccount(principal));
         // cast to folder so there are less thymeleaf errors
         model.addAttribute("currentFolder", (Folder) folderOptional.orElseGet(() -> getRootFolderOfPrincipal(principal)));
+        model.addAttribute("account", getAuthenticatedAccount(principal));
     }
 
     private Folder getRootFolderOfPrincipal(Principal principal) {

@@ -45,12 +45,12 @@
                     Edit & Info
                 </a>
 
-                <a href="#" class="dropdown-item dropdown-selected text-dark">
-                    Copy
+                <a th:href="@{/move(folderId=${fileSystemObject.parent.id}, fileSystemObjectId=${fileSystemObject.id})}" class="dropdown-item dropdown-selected text-white">
+                    Move
                 </a>
 
                 <a href="#" class="dropdown-item dropdown-selected text-dark">
-                    Move
+                    Copy
                 </a>
 
             </div>

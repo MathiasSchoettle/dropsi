@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>😱</title>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-12 col-md-9 col-xl-8 flex-column d-flex p-0 pt-5 pb-5 mt-auto mb-auto">
+            <div class="flex-row f-flex justify-content-center">
+                <div class="p-3 bgdark r-lg bx-shdw">
+
+                    <div class="d-flex flex-row justify-content-between ml-2 mb-1 text-white">
+                        <p class="h3 text-truncate">VIEW FILE</p>
+                        <a th:href="@{/main(folderId=${parentId})}">
+                            <i class='material-icons text-white top-bar-icon'>close</i>
+                        </a>
+                    </div>
+
+
+                    <div class="col d-flex justify-content-center p-5 bgmedium r-md">
+                        <div class="display-5 text-white">
+                            THIS FILETYPE IS NOT CURRENTLY SUPPORTED 😅
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

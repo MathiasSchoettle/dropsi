@@ -24,7 +24,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private SecurityUtilities securityUtilities;
 
-    private static String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/", "/login", "/sign_up", "/css/**", "/img/**", "/js/**", "/fonts/**"};
+    // TODO remove /test
+    private static final String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/", "/test", "/login", "/sign_up", "/css/**", "/img/**", "/js/**", "/fonts/**"};
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -33,7 +34,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(ALLOW_ACCESS_WITHOUT_AUTHENTICATION)
                 .permitAll().anyRequest().authenticated();
         http
-                .formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/main").failureUrl("/loginFailed")
+                .formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/home").failureUrl("/loginFailed")
                 .and()
                 .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login")
                 .deleteCookies("remember-me").permitAll()

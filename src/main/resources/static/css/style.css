@@ -1,0 +1,169 @@
+:root {
+    --bg-color-dark: #242529;
+    --bg-color-darker: #1d1e22;
+    --bg-color-medium: #2e2f34;
+
+    --bg-dark-transparent: rgba(0, 0, 0, 0.55);
+
+    --warn: #ff5d5d;
+    --succ: #1cff59;
+
+    --main-header-height-lg: 80px;
+    --main-header-height-sm: 60px;
+}
+
+::-webkit-scrollbar {
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--bg-color-darker);
+    border-radius: 0.3em;
+}
+::-webkit-scrollbar-thumb {
+    border: 3px solid var(--bg-color-darker);
+    border-radius: 5px;
+    height: 10px;
+    background: var(--bg-color-medium);
+}
+
+::-webkit-scrollbar:vertical {
+    width: 10px;
+}
+::-webkit-scrollbar-track:vertical {
+    background-color: var(--bg-color-medium);
+    border-radius: 0.3em;
+}
+::-webkit-scrollbar-thumb:vertical {
+    border: 3px solid var(--bg-color-medium);
+    border-radius: 5px;
+    width: 20px;
+    background: var(--bg-color-darker);
+}
+
+body {
+    background-color: var(--bg-color-darker) !important;
+    height: 100vh !important;
+}
+
+/* font sizes */
+.f-xl {
+    font-size: 2.5em !important;
+}
+
+.f-lg {
+    font-size: 1.4em !important;
+}
+
+.f-md {
+    font-size: 1em !important;
+}
+
+.f-sm {
+    font-size: 0.9em !important;
+}
+
+.f-xs {
+    font-size: 0.7em !important;
+}
+
+/* radius classes */
+.r-sm {
+    border-radius: 0.3em !important;
+}
+
+.r-md {
+    border-radius: 0.6em !important;
+}
+
+.r-lg {
+    border-radius: 1em !important;
+}
+
+/* background colors */
+.bgdark {
+    background-color: var(--bg-color-dark) !important;
+}
+
+.bgdarker {
+    background-color: var(--bg-color-darker) !important;
+}
+
+.bgmedium {
+    background-color: var(--bg-color-medium) !important;
+}
+
+.bgdarktrans {
+    background-color: var(--bg-dark-transparent) !important;
+}
+
+.bgdarkhov:hover {
+    background-color: var(--bg-dark-transparent) !important;
+}
+
+/* text colors */
+
+.txt-warn {
+    color: var(--warn) !important;
+}
+
+.txt-success {
+    color: var(--succ) !important;
+}
+
+/* remove highlight from inputs */
+.input-text {
+    border: none !important;
+}
+
+.input-text:focus {
+    box-shadow: none !important;
+}
+
+/* remove styling of button */
+.no-btn {
+    all: unset;
+    cursor: pointer;
+}
+
+/* box shadow */
+.bx-shdw {
+    box-shadow: 0 0 15px 0 var(--bg-dark-transparent) !important;
+}
+
+/* test for main header */
+.main-header {
+    height: var(--main-header-height-lg);
+}
+
+.main-body {
+    height: calc(100vh - var(--main-header-height-lg));
+}
+
+.radius-topleft {
+    border-radius: 0.6em 0 0 0 !important;
+}
+
+
+/* share body height */
+.share-body {
+    height: 600px !important;
+}
+
+@media only screen and (max-width: 767px) {
+    /* For mobile phones: */
+    .main-header {
+        height: var(--main-header-height-sm);
+    }
+
+    .main-body {
+        height: calc(100vh - var(--main-header-height-sm));
+    }
+
+    .radius-topleft {
+        border-radius: 0 !important;
+    }
+
+    .share-body {
+        height: 300px !important;
+    }
+}

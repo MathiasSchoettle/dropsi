@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Login to Dropsi</title>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-sm-12 col-md-10 col-lg-10 col-xl-8 flex-column d-flex"
+             style="margin-top: auto; margin-bottom: auto">
+            <div class="flex-row f-flex">
+
+                <div class="p-3 bgdark r-lg bx-shdw text-white mt-3 mb-3">
+
+                    <div class="d-flex flex-row justify-content-between ml-2">
+                        <p class="h1" th:text="${'SHARE ' + fileSystemObject.name}"></p>
+
+                        <a th:href="@{/main(folderId=${fileSystemObject.parent.id})}">
+                            <i class='material-icons text-white top-bar-icon'>close</i>
+                        </a>
+                    </div>
+
+                    <div class="row p-0 m-0">
+                        <div class="col-md-6 d-flex flex-column p-0 pr-md-2 mb-2 share-body">
+
+                            <div class="bgmedium r-md mb-2" style="height: 80px">
+                                <div class="form-group p-2">
+                                    <label class="m-0 ml-1 mb-1 h6" for="inputUsername">Username</label>
+                                    <input type="text" class="form-control input-text" id="inputUsername" required autocomplete="off" name="username">
+                                </div>
+                            </div>
+
+                            <div class="col bgmedium r-md p-2 overflow-auto" style="height: 520px;">
+                                <ul class="list-group r-md" id="userList" th:each="account : ${accounts}">
+
+                                    <li class="row flex-row justify-content-between bgdarker p-1 pl-2 r-sm m-0 mb-1"
+                                        style="font-size: 1.1em;">
+
+                                        <div class="d-flex flex-row justify-content-center">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}"
+                                                     class="rounded-circle shadow-lg" style="height: 1.6em; width: 1.6em;">
+                                            </div>
+                                            <!-- span here is important so filter javascript works -->
+                                            <span class="d-flex flex-column justify-content-center ml-3 f-sm" th:text="${account.name}"></span>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center">
+
+                                            <form th:action="@{/share(fileSystemObjectId=${fileSystemObject.id}, accountId=${account.id})}"
+                                                  th:method="PATCH">
+                                                <button type="submit"
+                                                        class="text-white bgdarkhov r-sm no-btn">
+                                                    <i class="material-icons p-1">add</i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </li>
+
+                                </ul>
+
+                                <!-- https://www.w3schools.com/bootstrap/bootstrap_filters.asp -->
+                                <!-- slightly modified by me -->
+                                <!-- TODO move to js file -->
+                                <script>
+                                    $(document).ready(function () {
+                                        $("#inputUsername").on("keyup", function () {
+                                            const value = $(this).val().toLowerCase();
+                                            $("#userList li").filter(function () {
+                                                console.log($(this).find("span").text())
+                                                $(this).toggle($(this).find("span").text().toLowerCase().indexOf(value) > -1);
+                                            });
+                                        });
+                                    });
+                                </script>
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6 d-flex flex-column p-0 pl-md-2 mb-2 share-body">
+
+                            <div class="col bgmedium r-md p-2">
+                                <ul class="list-group r-md" th:each="account : ${accountList}">
+
+                                    <li class="row flex-row justify-content-between bgdarker p-1 pl-2 r-sm m-0 mb-1"
+                                        style="font-size: 1.1em;">
+
+                                        <div class="d-flex flex-row justify-content-center">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}"
+                                                     class="rounded-circle shadow-lg" style="height: 1.6em; width: 1.6em;">
+                                            </div>
+                                            <!-- span here is important so filter javascript works -->
+                                            <span class="d-flex flex-column justify-content-center ml-2 ml-3 f-sm" th:text="${account.name}"></span>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center">
+
+                                            <form th:action="@{/share(fileSystemObjectId=${fileSystemObject.id}, accountId=${account.id})}"
+                                                  th:method="DELETE">
+                                                <button type="submit"
+                                                        class="text-white bgdarkhov r-sm no-btn">
+                                                    <i class="material-icons p-1">remove</i>
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row p-2">
+
+                        <div class="col-sm-6 mb-2 mb-sm-0">
+                            <a th:href="@{/main(folderId=${fileSystemObject.parent.id})}"
+                               class="m-0 btn btn-danger btn-block">
+                                Cancel
+                            </a>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <form th:action="@{/share(fileSystemObjectId=${fileSystemObject.id}, folderId=${fileSystemObject.parent.id})}"
+                                  th:method="POST">
+                                <button type="submit" class="m-0 btn btn-success btn-block">
+                                    Share
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

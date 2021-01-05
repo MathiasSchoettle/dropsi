@@ -2,90 +2,86 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link th:href="@{/css/settingsStyle.css}" rel="stylesheet"/>
-    <link th:href="@{/css/modalStyle.css}" rel="stylesheet"/>
-    <title th:text="${'🖊️ - ' + fileSystemObject.name}"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Move</title>
 </head>
 <body>
-<div class="container-fluid p-0 d-flex flex-row justify-content-center main-container">
-    <div class="d-flex flex-column justify-content-center">
-        <div class="form-container p-3 row">
-            <div class="col p-0 m-0">
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-md-12 col-xl-8 flex-column d-flex p-0 mt-auto mb-auto">
 
-                <form th:action="@{/editInfo(fileSystemObjectId=${fileSystemObject.id})}" class="text-white"
-                      th:method="PUT">
+            <div class="p-3 bgdark r-lg bx-shdw text-white mt-3 mb-3">
 
-                    <div class="d-flex flex-row justify-content-start ml-2">
-                        <p class="h1">EDIT & INFO</p>
-                    </div>
+                <div class="d-flex flex-row justify-content-between ml-2 mb-2">
+                    <p class="h1">INFO</p>
 
-                    <hr/>
-
-                    <p th:if="${fileSystemObject.isFolder()}" class="h5 ml-2">Edit Folder Name</p>
-                    <p th:unless="${fileSystemObject.isFolder()}" class="h5 ml-2">Edit File Name</p>
-
-                    <div class="form-group input-container">
-                        <label th:if="${fileSystemObject.isFolder()}" for="fileSystemObjectNameInput"
-                               class="input-label">Folder name</label>
-                        <label th:unless="${fileSystemObject.isFolder()}" for="fileSystemObjectNameInput"
-                               class="input-label">File name</label>
-                        <input type="text" class="form-control input-field w-100" id="fileSystemObjectNameInput"
-                               th:name="folderName">
-                    </div>
-
-                    <button type="submit" class="btn btn-block btn-success">Save</button>
-
-                </form>
-
-                <hr/>
-
-                <p class="h5 ml-2 text-white">Additional Info</p>
-
-                <table class="table m-0 text-white">
-                    <tbody>
-                    <tr>
-                        <td class="font-weight-bold">Name:</td>
-                        <td th:text="${fileSystemObject.name}"></td>
-                    </tr>
-                    <tr>
-                        <td class="font-weight-bold">Filesize:</td>
-                        <td th:text="${fileSystemObject.getPrettyFileSize()}"></td>
-                    </tr>
-                    <tr>
-                        <td class="font-weight-bold">Creation Date</td>
-                        <td th:text="${fileSystemObject.getPrettyCreationDate()}"></td>
-                    </tr>
-                    <tr>
-                        <td class="font-weight-bold">Last Update Date</td>
-                        <td th:text="${fileSystemObject.getPrettyLastUpdateDate()}"></td>
-                    </tr>
-                    </tbody>
-                </table>
-
-            </div>
-            <div class="m-0 p-0 col">
-                <div class="d-flex flex-row justify-content-end ml-2">
-                    <a th:href="@{/folder(folderId=${fileSystemObject.parent.id})}">
+                    <a th:href="@{/main(folderId=${fileSystemObject.parent.id})}">
                         <i class='material-icons text-white top-bar-icon'>close</i>
                     </a>
                 </div>
 
-                <div class="d-flex flex-column">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <form th:action="@{/editInfo(fileSystemObjectId=${fileSystemObject.id})}" class="text-white" th:method="PUT">
 
-                    <p class="h5 ml-4 text-white">Additional Info</p>
+                            <p class="h5 ml-2" th:text="${'Edit ' + (fileSystemObject.isFolder() ? 'Folder' : 'File') + ' name'}"></p>
 
-                    <div class="d-flex flex-row ml-3" style="height: 450px;">
+                            <div class="d-flex flex-row">
+                                <div class="d-flex flex-row form-group p-2 bgdarker r-md flex-grow-1">
 
-                        <div class="p2 overflow-auto"
-                             style="background-color: #2e2f34; border-radius: 10px;">
+                                    <div class="d-flex flex-column flex-grow-1">
+                                        <label for="fileSystemObjectNameInput" class="m-0 ml-1 mb-1 h6" th:text="${(fileSystemObject.isFolder() ? 'Folder' : 'File') + ' name'}">Folder name</label>
+                                        <input type="text" th:placeholder="${fileSystemObject.name}" th:name="fileSystemObjectName" class="form-control input-field w-100 input-text" maxlength="50" id="fileSystemObjectNameInput">
+                                    </div>
 
-                            <div th:each="accessLog: ${fileSystemObject.accessLogs}" class="d-flex flex-row justify-content-between m-2 p-2 text-white rounded"
-                                 style="background-color: #242529;">
-                                <div class="flex-nowrap mr-4 font-weight-bold" style="white-space: nowrap;"
-                                     th:text="${accessLog.getPrettyCreationDate()}"></div>
-                                <div style="white-space: nowrap;" th:text="${accessLog.comment}"></div>
+                                    <div class="d-flex flex-column justify-content-end ml-2">
+                                        <button type="submit" class="btn btn-success">Save</button>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </form>
+
+                        <ul class="list-group r-md">
+                            <li class="list-group-item bgmedium d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold ">Name:</div>
+                                <div th:text="${fileSystemObject.name}"></div>
+                            </li>
+
+                            <li class="list-group-item bgmedium d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold ">FileSize:</div>
+                                <div th:text="${fileSystemObject.getPrettyFileSize()}"></div>
+                            </li>
+
+                            <li class="list-group-item bgmedium overflow  d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold">Creation Date:</div>
+
+                                <div class="d-flex flex-row">
+                                    <div th:text="${#temporals.format(fileSystemObject.creationDate, 'dd.MM.yyyy')}"></div>
+                                    <div class="ml-2 text-white-50 font-italic" th:text="${#temporals.format(fileSystemObject.creationDate, 'hh:mm')}"></div>
+                                </div>
+                            </li>
+                        </ul>
+
+                    </div>
+
+                    <div class="col-lg-6 mt-3 mt-lg-0">
+
+                        <div class="bgmedium r-md d-flex flex-column p-2" style="height: 273px; overflow-y: scroll">
+
+                            <div th:each="day : ${fileSystemObject.getAccessLogEntriesMap()}" class="d-flex flex-row justify-content-between bgdark overflow-scroll r-sm mb-2 p-2">
+                                <div class="d-flex flex-column justify-content-between flex-grow-1">
+                                    <div class="font-weight-bold pl-2" th:text="${#temporals.format(day.key, 'dd.MM.yyyy')}"></div>
+                                    <ul class="list-group r-sm mt-1">
+                                        <li th:each="entry : ${day.value}" class="list-group-item p-1 pl-2 pr-2 bgmedium d-flex flex-column justify-content-between">
+                                            <div class="overflow-auto f-sm" th:text="${entry.comment}"></div>
+                                            <div class="f-xs text-white-50 font-italic text-nowrap" th:text="${'- ' + #temporals.format(entry.creationDate, 'hh:mm')}"></div>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
 
                         </div>
@@ -93,6 +89,7 @@
                 </div>
 
             </div>
+
         </div>
     </div>
 </div>

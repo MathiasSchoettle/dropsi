@@ -33,6 +33,7 @@ public class SignUpController {
     }
 
     // TODO make successful sign up automatic login
+    // TODO refactor this because now i have superior knowledge
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
     public String signUpNewAccount(@ModelAttribute Account account, Model model, HttpServletRequest request) {
 

@@ -33,7 +33,7 @@ public class EditController {
     }
 
     @RequestMapping(value = {"/editInfo"}, method = RequestMethod.PUT)
-    public String changeFolderName(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId, @ModelAttribute("folderName") String fileSystemObjectName) {
+    public String changeFolderName(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId, @ModelAttribute("fileSystemObjectName") String fileSystemObjectName) {
         Account account = mainController.getAuthenticatedAccount(principal);
         FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
         fileSystemService.changeNameOfFileSystemObject(fileSystemObjectId, account, fileSystemObjectName);

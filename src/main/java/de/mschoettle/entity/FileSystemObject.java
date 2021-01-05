@@ -5,13 +5,14 @@ import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="ref_type")
+@DiscriminatorColumn(name = "ref_type")
 public abstract class FileSystemObject {
 
     @Id
@@ -37,12 +38,13 @@ public abstract class FileSystemObject {
     @OneToMany(mappedBy = "reference", cascade = CascadeType.REMOVE)
     private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "shared")
+    @OneToMany(mappedBy = "shared", cascade = CascadeType.REMOVE)
     private List<Permission> permissions = new ArrayList<>();
 
-    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
 
-    public FileSystemObject(){}
+    public FileSystemObject() {
+    }
 
     public FileSystemObject(String name, long fileSize, Account owner, Folder parent) {
         this.name = name;
@@ -55,20 +57,39 @@ public abstract class FileSystemObject {
 
     public void addAccessLogEntry(AccessLogEntry accessLogEntry) {
 
-        if(accessLogEntry == null) {
+        if (accessLogEntry == null) {
             throw new IllegalArgumentException("AccessLogEntry was null");
         }
 
-        if(accessLogs.contains(accessLogEntry)) {
+        if (accessLogs.contains(accessLogEntry)) {
             throw new IllegalArgumentException("Duplicate AccessLogEntry: " + accessLogEntry);
         }
 
         accessLogs.add(0, accessLogEntry);
     }
 
-    // TODO das hier ist mal wieder absoluter schmu, aber ich weiß ned wies anders geht weil ich thymeleaf ned kann lul
     public boolean isFolder() {
         return this instanceof Folder;
+    }
+
+    public Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap() {
+
+        Map<LocalDate, List<AccessLogEntry>> map = new HashMap<>();
+
+        for (AccessLogEntry a : accessLogs) {
+
+            LocalDate ld = a.getCreationDate().toLocalDate();
+
+            if (map.containsKey(ld)) {
+                map.get(ld).add(a);
+            } else {
+                List<AccessLogEntry> list = new ArrayList<>();
+                list.add(a);
+                map.put(ld, list);
+            }
+        }
+
+        return map;
     }
 
     public String getPrettyCreationDate() {
@@ -85,19 +106,16 @@ public abstract class FileSystemObject {
         StringBuilder sb = new StringBuilder();
         DecimalFormat df2 = new DecimalFormat("0.00");
 
-        if(fileSize > 1073741824d) {
+        if (fileSize > 1073741824d) {
             sb.append(df2.format((double) fileSize / 1073741824d));
             sb.append(" GB");
-        }
-        else if(fileSize > 1048576d) {
+        } else if (fileSize > 1048576d) {
             sb.append(df2.format((double) fileSize / 1048576d));
             sb.append(" MB");
-        }
-        else if(fileSize > 1024d) {
+        } else if (fileSize > 1024d) {
             sb.append(df2.format((double) fileSize / 1024d));
             sb.append(" KB");
-        }
-        else {
+        } else {
             sb.append(df2.format((double) fileSize));
             sb.append(" Byte");
         }
