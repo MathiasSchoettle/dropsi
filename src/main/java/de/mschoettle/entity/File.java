@@ -1,5 +1,7 @@
 package de.mschoettle.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,10 +11,12 @@ import java.nio.file.Paths;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class File extends FileSystemObject {
 
+    @JsonIgnore
     private String fileExtension;
 
     private String fileType;
 
+    @JsonIgnore
     private String fileReference;
 
     public File(){}
@@ -23,10 +27,11 @@ public class File extends FileSystemObject {
         this.fileType = fileType;
     }
 
-    // TODO do this manually in a service method. Is it possible?
+    // as discussed in the tutorial the physical files are now deleted in the service method after the file-entity is removed from the database
+    // a cronjob deletes all the physical files which have no link to a File entity in the database ensuring eventual consistency
     @PreRemove
     public void preRemove() throws IOException {
-        Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", fileReference));
+        // Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", fileReference));
     }
 
     @Override

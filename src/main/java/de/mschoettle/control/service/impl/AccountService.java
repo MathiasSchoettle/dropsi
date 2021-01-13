@@ -1,24 +1,30 @@
 package de.mschoettle.control.service.impl;
 
+import de.mschoettle.control.exception.AccountDoesNotExistsException;
+import de.mschoettle.control.exception.AccountNameTakenException;
+import de.mschoettle.control.exception.EmailTakenException;
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.entity.Account;
-import de.mschoettle.entity.Folder;
 import de.mschoettle.entity.repository.IAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.CredentialException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Qualifier("account")
 public class AccountService implements IAccountService {
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
+    private IFileSystemService fileSystemService;
 
     @Autowired
     private IAccountRepository accountRepo;
@@ -27,7 +33,13 @@ public class AccountService implements IAccountService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public void createNewAccount(Account account) {
+    public void createNewAccount(Account account) throws
+            AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException,
+            CredentialException,
+            AccountNameTakenException,
+            EmailTakenException {
+
         if(account.getName() == null ||
                 account.getName().trim().isEmpty() ||
                 account.getEmail() == null ||
@@ -35,17 +47,21 @@ public class AccountService implements IAccountService {
                 account.getHashedPassword() == null ||
                 account.getHashedPassword().isEmpty()) {
 
-            throw new IllegalArgumentException("One or more of the following parameters where empty or null: name:" + account.getName() +
+            throw new CredentialException("One or more of the following parameters where empty or null: name:" + account.getName() +
                     ", email: " + account.getEmail() +
                     ", password: " + "* * *");
         }
 
-        if(isUsernameTaken(account.getName()) || isEmailTaken(account.getEmail())) {
-            throw new IllegalArgumentException("Username or Email was already taken: username: " + account.getName() +
-                    ", email: " + account.getEmail());
+
+        if(isUsernameTaken(account.getName())) {
+            throw new AccountNameTakenException(account.getName());
         }
 
-        // TODO geht das hier auch ohne 2 mal account speichern
+        if(isEmailTaken(account.getEmail())) {
+            throw new EmailTakenException(account.getEmail());
+        }
+
+        account.setSecretKey(UUID.randomUUID().toString());
         account.setCreationDate(LocalDate.now());
         hashPasswordOfAccount(account);
         accountRepo.save(account);
@@ -59,8 +75,9 @@ public class AccountService implements IAccountService {
     @Override
     public boolean isEmailTaken(String email) {
 
-        if (email == null)
+        if (email == null) {
             throw new IllegalArgumentException("E-Mail can not be null");
+        }
 
         return accountRepo.findByEmail(email).isPresent();
     }
@@ -68,15 +85,22 @@ public class AccountService implements IAccountService {
     @Override
     public boolean isUsernameTaken(String username) {
 
-        if (username == null)
+        if (username == null) {
             throw new IllegalArgumentException("Username can not be null");
+        }
 
         return accountRepo.findByName(username).isPresent();
     }
 
     @Override
-    public Account getAccount(long id) {
-        return accountRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Account with given id does not exist"));
+    public Account getAccount(long id) throws AccountDoesNotExistsException {
+        return accountRepo.findById(id).orElseThrow(() -> new AccountDoesNotExistsException(id));
+    }
+
+    @Override
+    public Account getAccountBySecretKey(String secretKey) throws AccountDoesNotExistsException {
+        return accountRepo.findBySecretKey(secretKey).orElseThrow(
+                () -> new AccountDoesNotExistsException(secretKey));
     }
 
     @Override

@@ -33,7 +33,9 @@ public class Account implements UserDetails {
     @Lob
     private byte[] avatar;
 
-    private String securityToken;
+    private String secretKey;
+
+    private String retrogramToken;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     private Folder rootFolder;
@@ -189,8 +191,8 @@ public class Account implements UserDetails {
         return avatar;
     }
 
-    public String getSecurityToken() {
-        return securityToken;
+    public String getSecretKey() {
+        return secretKey;
     }
 
     public Folder getRootFolder() {
@@ -229,11 +231,19 @@ public class Account implements UserDetails {
         this.avatar = avatar;
     }
 
-    public void setSecurityToken(String securityToken) {
-        this.securityToken = securityToken;
+    public void setSecretKey(String securityToken) {
+        this.secretKey = securityToken;
     }
 
     public void setRootFolder(Folder rootFolder) {
         this.rootFolder = rootFolder;
+    }
+
+    public String getRetrogramToken() {
+        return retrogramToken;
+    }
+
+    public void setRetrogramToken(String retrogramToken) {
+        this.retrogramToken = retrogramToken;
     }
 }

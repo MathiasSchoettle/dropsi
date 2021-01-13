@@ -1,7 +1,9 @@
 package de.mschoettle.boundary.controller;
 
+import de.mschoettle.control.exception.AccountDoesNotExistsException;
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
@@ -23,7 +25,7 @@ import java.util.List;
 public class ShareController {
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
+    private IFileSystemService fileSystemService;
 
     @Autowired
     private IAccountService accountService;
@@ -37,7 +39,8 @@ public class ShareController {
     private List<Account> accountList = new ArrayList<>();
 
     @RequestMapping(value = "/share", method = RequestMethod.GET)
-    public String showShareView(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) {
+    public String showShareView(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws
+            FileSystemObjectDoesNotExistException {
 
         accountList = new ArrayList<>();
         model.addAttribute("accountList", accountList);
@@ -48,7 +51,11 @@ public class ShareController {
     }
 
     @RequestMapping(value = "/share", method = RequestMethod.PATCH)
-    public String addAccount(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId,  @RequestParam("accountId") long accountId) {
+    public String addAccount(Model model, Principal principal,
+                             @RequestParam("fileSystemObjectId") long fileSystemObjectId,
+                             @RequestParam("accountId") long accountId)
+            throws AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException {
 
         Account accountToAdd = accountService.getAccount(accountId);
 
@@ -62,7 +69,11 @@ public class ShareController {
     }
 
     @RequestMapping(value = "/share", method = RequestMethod.DELETE)
-    public String removeAccount(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId,  @RequestParam("accountId") long accountId) {
+    public String removeAccount(Model model, Principal principal,
+                                @RequestParam("fileSystemObjectId") long fileSystemObjectId,
+                                @RequestParam("accountId") long accountId)
+            throws AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException {
 
         Account accountToRemove = accountService.getAccount(accountId);
         accountList.remove(accountToRemove);
@@ -73,7 +84,10 @@ public class ShareController {
     }
 
     @RequestMapping(value = "/share", method = RequestMethod.POST)
-    public String givePermissions(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId,  @RequestParam("folderId") long folderId) {
+    public String givePermissions(Model model, Principal principal,
+                                  @RequestParam("fileSystemObjectId") long fileSystemObjectId,
+                                  @RequestParam("folderId") long folderId)
+            throws FileSystemObjectDoesNotExistException {
 
         mainController.addFolderToModel(model, principal, folderId);
         FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(mainController.getAuthenticatedAccount(principal), fileSystemObjectId);
@@ -85,7 +99,9 @@ public class ShareController {
         return "main";
     }
 
-    private void addAccountsAndFileSystemObjectToModel(Model model, Principal principal, long fileSystemObjectId) {
+    private void addAccountsAndFileSystemObjectToModel(Model model, Principal principal, long fileSystemObjectId) throws
+            FileSystemObjectDoesNotExistException {
+
         Account account = mainController.getAuthenticatedAccount(principal);
         FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
         model.addAttribute("fileSystemObject", fileSystemObject);

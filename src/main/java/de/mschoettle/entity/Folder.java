@@ -1,5 +1,7 @@
 package de.mschoettle.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +33,7 @@ public class Folder extends FileSystemObject {
         }
 
         if (this.contents.contains(fileSystemObject)) {
-            throw new IllegalArgumentException("folder already contains FileSystemObject: " + fileSystemObject);
+            throw new IllegalArgumentException("Folder already contains FileSystemObject: " + fileSystemObject);
         }
 
         this.contents.add(fileSystemObject);

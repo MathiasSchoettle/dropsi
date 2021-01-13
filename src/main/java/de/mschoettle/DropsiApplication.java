@@ -9,5 +9,4 @@ public class DropsiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DropsiApplication.class, args);
 	}
-
 }

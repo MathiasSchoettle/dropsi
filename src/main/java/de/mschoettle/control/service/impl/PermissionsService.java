@@ -1,7 +1,9 @@
 package de.mschoettle.control.service.impl;
 
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
+import de.mschoettle.control.exception.PermissionDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.AccessType;
 import de.mschoettle.entity.Account;
@@ -23,13 +25,13 @@ public class PermissionsService implements IPermissionService {
     private IAccountService accountService;
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
+    private IFileSystemService fileSystemService;
 
     @Override
-    public Permission getPermission(Account ownerOrReceiver, long permissionId) {
+    public Permission getPermission(Account ownerOrReceiver, long permissionId) throws PermissionDoesNotExistException {
 
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(
-                () -> new IllegalArgumentException("permission with id " + permissionId + " does not exist"));
+                () -> new PermissionDoesNotExistException(permissionId));
 
         if(!permission.getReceiver().equals(ownerOrReceiver) && !permission.getShared().getOwner().equals(ownerOrReceiver)) {
             throw new IllegalArgumentException("Given Account " + ownerOrReceiver + " has no connection to permission");
@@ -40,7 +42,7 @@ public class PermissionsService implements IPermissionService {
 
     @Override
     @Transactional
-    public void giveAccountPermission(Account account, FileSystemObject fileSystemObject) {
+    public void giveAccountPermission(Account account, FileSystemObject fileSystemObject) throws FileSystemObjectDoesNotExistException {
 
         if(fileSystemObject.getOwner().equals(account)) {
             throw new IllegalArgumentException("Account " + account + " owns FileSystemObject " + fileSystemObject.getId());
@@ -71,7 +73,7 @@ public class PermissionsService implements IPermissionService {
     }
 
     @Override
-    public void deletePermission(Permission permission) {
+    public void deletePermission(Permission permission) throws FileSystemObjectDoesNotExistException {
 
         if(permission == null) {
             throw new IllegalArgumentException("Permission was null");

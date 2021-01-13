@@ -1,8 +1,10 @@
 package de.mschoettle.boundary.controller;
 
+import de.mschoettle.control.exception.AccountDoesNotExistsException;
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
+import de.mschoettle.control.exception.NotAFolderException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
-import de.mschoettle.entity.AccessLogEntry;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
@@ -27,7 +29,7 @@ public class MainController {
     private IAccountService accountService;
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
+    private IFileSystemService fileSystemService;
 
     @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String showMain(Model model, Principal principal) {
@@ -43,34 +45,48 @@ public class MainController {
     }
 
     @RequestMapping(value = "/folder", method = RequestMethod.POST)
-    public String addFolder(Model model, Principal principal, @RequestParam("folderId") long folderId, @ModelAttribute("folderName") String folderName) {
+    public String addFolder(Model model, Principal principal,
+                            @RequestParam("folderId") long folderId,
+                            @ModelAttribute("folderName") String folderName) throws
+            AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
+
         fileSystemService.addNewFolderToFolder(getAuthenticatedAccount(principal), folderId, folderName);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
 
     @RequestMapping(value = "/fileSystemObject", method = RequestMethod.GET)
-    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws IOException {
+    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal,
+                                                          @RequestParam("fileSystemObjectId") long fileSystemObjectId)
+            throws IOException, FileSystemObjectDoesNotExistException {
+
         return fileSystemService.getFileSystemObjectResponseEntity(getAuthenticatedAccount(principal), fileSystemObjectId);
     }
 
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
-    public String uploadFile(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("uploadedFile") MultipartFile[] files) throws IOException {
+    public String uploadFile(Model model, Principal principal,
+                             @RequestParam("folderId") long folderId,
+                             @RequestParam("uploadedFile") MultipartFile[] files) throws
+            IOException,
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
+
         fileSystemService.addFileToFolder(getAuthenticatedAccount(principal), folderId, files);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
 
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.DELETE)
-    public String deleteFileSystemObject(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("fileSystemObjectId") long fileSystemObjectId) {
-        fileSystemService.deleteFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
-        addFolderToModel(model, principal, folderId);
-        return "main";
-    }
+    public String deleteFileSystemObject(Model model, Principal principal,
+                                         @RequestParam("folderId") long folderId,
+                                         @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws
+            FileSystemObjectDoesNotExistException,
+            IOException,
+            NotAFolderException {
 
-    @RequestMapping(value = "/filesystemobject", method = RequestMethod.PATCH)
-    public String moveFileSystemObject(Model model, Principal principal, @RequestParam("folderId") long folderId, @RequestParam("fileSystemObjectId") long fileSystemObjectId)  {
-        fileSystemService.moveFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
+        fileSystemService.deleteFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
@@ -97,4 +113,6 @@ public class MainController {
     public Account getAuthenticatedAccount(Principal principal) {
         return (Account) accountService.loadUserByUsername(principal.getName());
     }
+
+    // TODO exception handling
 }

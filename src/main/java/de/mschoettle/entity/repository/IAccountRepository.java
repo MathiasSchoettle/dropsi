@@ -10,4 +10,6 @@ public interface IAccountRepository extends CrudRepository<Account, Long> {
     Optional<Account> findByName(String name);
 
     Optional<Account> findByEmail(String email);
+
+    Optional<Account> findBySecretKey(String securityToken);
 }

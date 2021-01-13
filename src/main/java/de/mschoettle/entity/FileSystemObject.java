@@ -1,5 +1,6 @@
 package de.mschoettle.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sun.source.tree.Tree;
 import org.hibernate.annotations.SortNatural;
 
@@ -23,24 +24,30 @@ public abstract class FileSystemObject {
 
     private LocalDateTime creationDate = LocalDateTime.MIN;
 
+    @JsonIgnore
     private LocalDateTime lastUpdateDate = LocalDateTime.MIN;
 
     private long fileSize = 0;
 
     @ManyToOne
+    @JsonIgnore
     private Account owner = null;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
     private Folder parent = null;
 
     @SortNatural
     @OrderBy("creationDate DESC")
     @OneToMany(mappedBy = "reference", cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "shared", cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private List<Permission> permissions = new ArrayList<>();
 
+    @JsonIgnore
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
 
     public FileSystemObject() {
@@ -72,6 +79,7 @@ public abstract class FileSystemObject {
         return this instanceof Folder;
     }
 
+    @JsonIgnore
     public Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap() {
 
         Map<LocalDate, List<AccessLogEntry>> map = new HashMap<>();
@@ -92,10 +100,14 @@ public abstract class FileSystemObject {
         return map;
     }
 
+    // TODO remove
+    @JsonIgnore
     public String getPrettyCreationDate() {
         return dtf.format(this.creationDate);
     }
 
+    // TODO remove
+    @JsonIgnore
     public String getPrettyLastUpdateDate() {
         return dtf.format(this.creationDate);
     }

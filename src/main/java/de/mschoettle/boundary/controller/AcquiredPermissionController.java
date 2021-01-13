@@ -1,7 +1,10 @@
 package de.mschoettle.boundary.controller;
 
+import de.mschoettle.control.exception.AccountDoesNotExistsException;
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
+import de.mschoettle.control.exception.PermissionDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.Permission;
@@ -11,28 +14,20 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Base64;
 
 @Controller
 @Scope("session")
 public class AcquiredPermissionController {
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
-
-    @Autowired
-    private IAccountService accountService;
+    private IFileSystemService fileSystemService;
 
     @Autowired
     private IPermissionService permissionService;
@@ -51,12 +46,18 @@ public class AcquiredPermissionController {
     }
 
     @RequestMapping(value = "/permissions/received/fileSystemObject", method = RequestMethod.GET)
-    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("permissionId") long permissionId) throws IOException {
+    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("permissionId") long permissionId) throws
+            IOException,
+            FileSystemObjectDoesNotExistException,
+            PermissionDoesNotExistException {
+
         return fileSystemService.getFileSystemObjectResponseEntityByPermission(mainController.getAuthenticatedAccount(principal), permissionId);
     }
 
     @RequestMapping(value = "/permissions/received", method = RequestMethod.DELETE)
-    public String deletePermission(Model model, Principal principal, @RequestParam("permissionId") long permissionId) {
+    public String deletePermission(Model model, Principal principal, @RequestParam("permissionId") long permissionId) throws
+            FileSystemObjectDoesNotExistException,
+            PermissionDoesNotExistException {
 
         Account account = mainController.getAuthenticatedAccount(principal);
         Permission permission = permissionService.getPermission(account, permissionId);
@@ -67,5 +68,28 @@ public class AcquiredPermissionController {
         model.addAttribute("shares", account.getPermissionMap());
 
         return "permissionsReceived";
+    }
+
+    // TODO not found does not mean IOException
+    /**
+     * If a IOException is thrown return an not found response
+     *
+     * @return not found response
+     */
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Void> handleException() {
+        return ResponseEntity.notFound().build();
+    }
+
+    // TODO maybe instead of just showing the same view again make a dynamic error view to tell the user what went wrong ->
+    //  when he downloads say it was deleted
+    /**
+     * If a FileSystemObjectDoesNotExistException is thrown the main permissions received view should be shown again
+     *
+     * @return the name of the view
+     */
+    @ExceptionHandler({FileSystemObjectDoesNotExistException.class, PermissionDoesNotExistException.class})
+    public String handleFileSystemDoesNoteExistException(Model model, Principal principal) {
+        return viewPermissions(model, principal);
     }
 }

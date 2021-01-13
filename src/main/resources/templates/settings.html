@@ -9,12 +9,21 @@
 </head>
 <body>
 <div class="container-fluid h-100">
+
     <div class="flex-row d-flex justify-content-center h-100">
+
+        <div class="toast" style="position: absolute; top: 20px; z-index: 1000">
+            <div class="toast-body">
+                Copied to clipboard
+            </div>
+        </div>
+
         <div class="col-12 col-sm-8 col-md-6 col-lg-4 col-xl-3 flex-column d-flex justify-content-center">
             <div class="flex-row f-flex justify-content-center">
 
                 <div class="p-3 bgdark r-lg bx-shdw">
-                    <form th:action="@{/settings}" th:object="${account}" class="text-white" method="POST" enctype="multipart/form-data">
+                    <form th:action="@{/settings}" th:object="${account}" class="text-white" method="POST"
+                          enctype="multipart/form-data">
 
                         <div class="d-flex flex-row justify-content-between ml-2">
                             <p class="h1">ACCOUNT</p>
@@ -30,7 +39,8 @@
 
                         <div class="form-group p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="nameInput">Name</label>
-                            <input type="text" class="form-control input-text" id="nameInput" th:text="*{name}" th:field="*{name}" th:placeholder="${name}">
+                            <input type="text" class="form-control input-text" id="nameInput" th:text="*{name}"
+                                   th:field="*{name}" th:placeholder="${name}">
 
                             <div th:if="${triedToChangeUsername}">
                                 <div th:if="${changedUsername}" class="ml-2 mt-1 txt-success">
@@ -45,7 +55,8 @@
 
                         <div class="form-group p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="emailInput">E-Mail</label>
-                            <input type="email" class="form-control input-text" id="emailInput" th:text="*{email}" th:field="*{email}" th:placeholder="${email}">
+                            <input type="email" class="form-control input-text" id="emailInput" th:text="*{email}"
+                                   th:field="*{email}" th:placeholder="${email}">
 
                             <div th:if="${triedToChangeEmail}">
                                 <div th:if="${changedEmail}" class="ml-2 mt-1 txt-success">
@@ -60,17 +71,21 @@
 
                         <div class="form-group  p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="avatarInput">Choose an Avatar</label>
-                            <input type="file" th:name="avatarImage" class="form-control-file" id="avatarInput" accept="image/x-png,image/gif,image/jpeg" >
+                            <input type="file" th:name="avatarImage" class="form-control-file" id="avatarInput"
+                                   accept="image/x-png,image/gif,image/jpeg">
                         </div>
 
                         <div class="form-group p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="passwordInput">Password</label>
-                            <input class="form-control input-text" readonly onfocus="this.removeAttribute('readonly');" type="password" placeholder="To be implemented"  disabled th:field="*{password}" id="passwordInput">
+                            <input class="form-control input-text" readonly onfocus="this.removeAttribute('readonly');"
+                                   type="password" placeholder="To be implemented" disabled th:field="*{password}"
+                                   id="passwordInput">
                         </div>
 
                         <div class="row">
                             <div class="col-6 p-0 d-flex flex-column justify-content-center">
-                                <a class="btn btn-sm btn-danger mr-1 ml-3" data-toggle="modal" data-target="#confirmationModal">Delete</a>
+                                <a class="btn btn-sm btn-danger mr-1 ml-3" data-toggle="modal"
+                                   data-target="#confirmationModal">Delete</a>
                             </div>
 
                             <div class="col-6 p-0 d-flex flex-column justify-content-center">
@@ -79,7 +94,8 @@
                         </div>
 
                         <!-- Modal -->
-                        <div class="modal fade bgdarktrans" id="confirmationModal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal fade bgdarktrans" id="confirmationModal" tabindex="-1" role="dialog"
+                             aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content bgdark">
                                     <div class="modal-header border-0">
@@ -93,9 +109,12 @@
                                         <br>
                                         Make sure you really want to do this.
                                     </div>
-                                    <div class="modal-footer border-0 d-flex flex-row justify-content-around mt-2" role="group">
+                                    <div class="modal-footer border-0 d-flex flex-row justify-content-around mt-2"
+                                         role="group">
                                         <a class="btn btn-danger col-5" th:href="@{/deleteAccount}">Delete</a>
-                                        <button type="button" class="btn btn-secondary col-5" data-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-secondary col-5" data-dismiss="modal">
+                                            Cancel
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -107,8 +126,36 @@
 
                         <div class="form-group p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="retrogramInput">Token</label>
-                            <input type="text" class="form-control input-text" id="retrogramInput" placeholder="To be implemented" disabled th:field="*{securityToken}">
+                            <input type="text" class="form-control input-text" id="retrogramInput"
+                                   placeholder="To be implemented" disabled th:field="*{secretKey}">
                         </div>
+
+                        <button type="button" onclick="copy()" class="btn btn-warning btn-sm btn-block">Copy you secret
+                            Key
+                        </button>
+
+                        <!-- script to copy secretKey into clipboard -->
+                        <script th:inline="javascript">
+                            /*<![CDATA[*/
+
+                            let text = /*[[${secretKey}]]*/ 'default';
+
+                            function copy() {
+                                let textarea = document.createElement("textarea");
+                                textarea.value = text;
+                                document.body.appendChild(textarea);
+                                textarea.select();
+                                document.execCommand("copy");
+                                document.body.removeChild(textarea);
+                                showToast();
+                            }
+
+                            function showToast() {
+                                $('.toast').toast('show');
+                            }
+
+                            /*]]>*/
+                        </script>
 
                         <hr/>
 

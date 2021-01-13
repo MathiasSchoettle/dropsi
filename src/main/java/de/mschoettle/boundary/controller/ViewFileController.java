@@ -1,11 +1,14 @@
 package de.mschoettle.boundary.controller;
 
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
+import de.mschoettle.control.exception.NotAFileException;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.entity.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,13 +24,16 @@ import java.util.Base64;
 public class ViewFileController {
 
     @Autowired
-    private IInternalFileSystemService fileSystemService;
+    private IFileSystemService fileSystemService;
 
     @Autowired
     private MainController mainController;
 
     @RequestMapping(value = {"/view"}, method = RequestMethod.GET)
-    public String viewFile(Model model, Principal principal, @RequestParam("fileId") long fileId) throws IOException {
+    public String viewFile(Model model, Principal principal, @RequestParam("fileId") long fileId) throws
+            IOException,
+            FileSystemObjectDoesNotExistException,
+            NotAFileException {
 
         File file = fileSystemService.getFile(mainController.getAuthenticatedAccount(principal), fileId);
         model.addAttribute("parentId", file.getParent().getId());
@@ -59,14 +65,23 @@ public class ViewFileController {
     }
 
     private String prepareForImage(Model model, File file) throws IOException {
+
         byte[] bytes = Files.readAllBytes(Path.of(System.getProperty("user.dir"), "files", file.getFileReference()));
         model.addAttribute("type", "data:" + file.getFileType() + ";base64,");
         model.addAttribute("image", Base64.getEncoder().encodeToString(bytes));
+
         return "viewImage";
     }
 
     private String prepareForText(Model model, File file) throws IOException {
+
         model.addAttribute("text", Files.readString(Path.of(System.getProperty("user.dir"), "files", file.getFileReference())));
+
         return "viewText";
+    }
+
+    @ExceptionHandler(FileSystemObjectDoesNotExistException.class)
+    public String handleFileSystemObjectDoesNotExistException(Model model, Principal principal) {
+        return mainController.showMain(model, principal);
     }
 }

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Move</title>
+</head>
+<body>
+<div class="container-fluid h-100">
+    <div class="flex-row d-flex justify-content-center h-100">
+        <div class="col-md-12 col-xl-8 flex-column d-flex p-0 mt-auto mb-auto">
+
+            <div class="p-3 bgdark r-lg bx-shdw text-white mt-3 mb-3">
+
+                <div class="d-flex flex-row justify-content-between ml-2">
+                    <p class="h1">INFO</p>
+
+                    <a>
+                        <i class='material-icons text-white top-bar-icon'>close</i>
+                    </a>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <form class="text-white" th:method="PUT">
+
+                            <p class="h5 ml-2" th:text="${'Edit ' + (fileSystemObject.isFolder() ? 'Folder' : 'File')}}">Edit Folder Name</p>
+
+                            <div class="d-flex flex-row">
+                                <div class="d-flex flex-row form-group p-2 bgdarker r-md flex-grow-1">
+
+                                    <div class="d-flex flex-column flex-grow-1">
+                                        <label for="fileSystemObjectNameInput" class="m-0 ml-1 mb-1 h6">Folder name</label>
+                                        <input type="text" class="form-control input-field w-100" maxlength="50" id="fileSystemObjectNameInput">
+                                    </div>
+
+                                    <div class="d-flex flex-column justify-content-end ml-2">
+                                        <button type="submit" class="btn btn-success">Save</button>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </form>
+
+                        <ul class="list-group r-md">
+                            <li class="list-group-item bgmedium d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold ">Name:</div>
+                                <div class="">Semester 7</div>
+                            </li>
+
+                            <li class="list-group-item bgmedium d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold ">FileSize:</div>
+                                <div class="">303,92 KB</div>
+                            </li>
+
+                            <li class="list-group-item bgmedium d-flex flex-row justify-content-between">
+                                <div class="font-weight-bold">Creation Date:</div>
+                                <div class="">19.09.2020 14:23</div>
+                            </li>
+                        </ul>
+
+                    </div>
+
+                    <div class="col-lg-6 mt-3 mt-lg-0">
+
+                        <div class="bgmedium r-md d-flex flex-column p-2" style="height: 273px; overflow-y: scroll">
+
+                            <div class="d-flex flex-row justify-content-between bgdark overflow-hidden r-sm mb-2 p-2">
+                                <div class="d-flex flex-column justify-content-between flex-grow-1">
+                                    <div class="font-weight-bold pl-2">02.01.2021</div>
+                                    <ul class="list-group r-sm mt-1">
+                                        <li class="list-group-item p-1 pl-2 pr-2 bgmedium d-flex flex-column justify-content-between">
+                                            <div class="overflow-auto f-sm">Downloaded by Account "Mathias Schöttle"</div>
+                                            <div class="f-xs text-white-50 font-italic text-nowrap">- 17:33</div>
+                                        </li>
+                                        <li class="list-group-item p-1 pl-2 pr-2 bgmedium d-flex flex-column justify-content-between">
+                                            <div class="overflow-auto f-sm">Deleted child "download"</div>
+                                            <div class="f-xs text-white-50 font-italic text-nowrap">- 12:23</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

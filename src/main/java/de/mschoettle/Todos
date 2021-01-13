@@ -1,12 +1,18 @@
 
 TODO dropsi:
 
-- remove rpettyprint for dates and use #temporal.format in thymeleaf
+- CRONJOB DER ALLE losen files löscht
+
+- add Exception handlers to mainController, especially IOExceptions tp return Response Entities -> Bad request
+
+- bei externen methoden casten auf simplere Entity -> Pojo von File und Folder -> eigene jar
+
+- run configs und application properties dynamisch setzen
+
+- remove prettyprint for dates and use #temporal.format in thymeleaf
 - rename editInfo to just info
 
 - make scrollbars own stylesheet and add as needed
-
--
 
 - add some color
 - add a loading modal

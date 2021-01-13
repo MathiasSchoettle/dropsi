@@ -4,17 +4,16 @@ import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.ManyToOne;
+import javax.security.auth.login.CredentialException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -32,8 +31,10 @@ public class SettingsController {
     @RequestMapping(value = "/settings")
     public String showSettings(Model model, Principal principal) {
 
-        model.addAttribute("name", mainController.getAuthenticatedAccount(principal).getName());
-        model.addAttribute("email", mainController.getAuthenticatedAccount(principal).getEmail());
+        Account account = mainController.getAuthenticatedAccount(principal);
+        model.addAttribute("name", account.getName());
+        model.addAttribute("email", account.getEmail());
+        model.addAttribute("secretKey", account.getSecretKey());
 
         model.addAttribute("triedToChangeUsername", false);
         model.addAttribute("changedUsername", false);
@@ -47,31 +48,30 @@ public class SettingsController {
 
     // TODO refactor this maybe
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    public String saveSettings(Model model, Principal principal, @ModelAttribute Account account, @RequestParam("avatarImage") MultipartFile[] avatarImage) throws IOException {
+    public String saveSettings(Model model, Principal principal,
+                               @ModelAttribute Account account,
+                               @RequestParam("avatarImage") MultipartFile[] avatarImage)
+            throws IOException {
 
-        boolean triedToChangeUsername;
-        boolean changedUsername = false;
+        Account authenticatedAccount = mainController.getAuthenticatedAccount(principal);
 
-        boolean triedToChangeEmail;
-        boolean changedEmail = false;
+        boolean triedToChangeUsername = !account.getName().trim().equals("");
+        boolean changedUsername = !accountService.isUsernameTaken(account.getName());
 
-        Account auhenticatedAccount = mainController.getAuthenticatedAccount(principal);
+        boolean triedToChangeEmail = !account.getEmail().trim().equals("");
+        boolean changedEmail = !accountService.isEmailTaken(account.getEmail());
 
-        if (triedToChangeUsername = !account.getName().trim().equals("")) {
-            if (changedUsername = !accountService.isUsernameTaken(account.getName())) {
-                auhenticatedAccount.setName(account.getName());
-            }
+        if (triedToChangeUsername && changedUsername) {
+            authenticatedAccount.setName(account.getName());
         }
 
-        model.addAttribute("name", auhenticatedAccount.getName());
-
-        if (triedToChangeEmail = !account.getEmail().trim().equals("")) {
-            if (changedEmail = !accountService.isEmailTaken(account.getEmail())) {
-                auhenticatedAccount.setEmail(account.getEmail());
-            }
+        if (triedToChangeEmail && changedEmail) {
+            authenticatedAccount.setEmail(account.getEmail());
         }
 
-        model.addAttribute("email", auhenticatedAccount.getEmail());
+        model.addAttribute("name", authenticatedAccount.getName());
+        model.addAttribute("email", authenticatedAccount.getEmail());
+        model.addAttribute("secretKey", authenticatedAccount.getSecretKey());
 
         model.addAttribute("triedToChangeUsername", triedToChangeUsername);
         model.addAttribute("changedUsername", changedUsername);
@@ -81,11 +81,16 @@ public class SettingsController {
         model.addAttribute("account", new Account());
 
         if(avatarImage.length > 0) {
-            auhenticatedAccount.setAvatar(avatarImage[0].getBytes());
+            authenticatedAccount.setAvatar(avatarImage[0].getBytes());
         }
 
-        accountService.saveAccount(auhenticatedAccount);
+        accountService.saveAccount(authenticatedAccount);
 
         return "settings";
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Void> handleIOException() {
+        return ResponseEntity.badRequest().build();
     }
 }

@@ -1,7 +1,8 @@
 package de.mschoettle.control.service.impl;
 
+import de.mschoettle.control.exception.*;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IInternalFileSystemService;
+import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.*;
 import de.mschoettle.entity.repository.IAccessLogEntryRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
+import java.awt.datatransfer.FlavorEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
@@ -23,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class InternalFileSystemService implements IInternalFileSystemService {
+public class FileSystemService implements IFileSystemService {
 
     private IPermissionService permissionService;
 
@@ -49,23 +51,40 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Override
     @Transactional
-    public void deleteFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId) {
+    public void deleteFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId) throws
+            FileSystemObjectDoesNotExistException,
+            IOException,
+            NotAFolderException {
 
         Folder parentFolder = getFolder(account, parentFolderId);
         String childName = parentFolder.removeFileSystemObject(fileSystemObjectId);
         saveFileSystemObject(parentFolder);
 
+        FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
+        removePhysicalFilesOfChildren(fileSystemObject);
+
         fileSystemObjectRepository.deleteById(fileSystemObjectId);
+
         addAccessLogEntry(parentFolder, AccessType.EDITED, "Deleted child \"" + childName + "\"");
         recalculateSize(parentFolder);
     }
 
+    private void removePhysicalFilesOfChildren(FileSystemObject fileSystemObject) throws IOException {
+        if(fileSystemObject instanceof File) {
+            Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", ((File) fileSystemObject).getFileReference()));
+        } else if(fileSystemObject instanceof Folder) {
+            for(FileSystemObject f : ((Folder) fileSystemObject).getContents()) {
+                removePhysicalFilesOfChildren(f);
+            }
+        }
+    }
+
     @Override
     @Transactional
-    public void giveAccountRootFolder(Account account) {
+    public void giveAccountRootFolder(Account account) throws AccountDoesNotExistsException, FileSystemObjectDoesNotExistException {
 
         if (account == null) {
-            throw new IllegalArgumentException("account is null");
+            throw new AccountDoesNotExistsException();
         }
 
         if (account.getRootFolder() != null) {
@@ -82,10 +101,13 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Override
     @Transactional
-    public void addNewFolderToFolder(Account account, long parentFolderId, String childFolderName) {
+    public void addNewFolderToFolder(Account account, long parentFolderId, String childFolderName) throws
+            AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
 
         if (account == null) {
-            throw new IllegalArgumentException("account is null");
+            throw new AccountDoesNotExistsException();
         }
 
         if (childFolderName == null || childFolderName.trim().isEmpty()) {
@@ -106,7 +128,10 @@ public class InternalFileSystemService implements IInternalFileSystemService {
     // TODO refactor this, multiple files or even directories and rename method to something with upload
     @Override
     @Transactional
-    public void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) throws IOException {
+    public void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) throws
+            IOException,
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
 
         Folder parentFolder = getFolder(account, parentFolderId);
 
@@ -147,12 +172,12 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Override
     @Transactional
-    public ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntity(Account account, long fileSystemObjectId) throws IOException {
+    public ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntity(Account account, long fileSystemObjectId) throws IOException, FileSystemObjectDoesNotExistException {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
         addAccessLogEntry(fileSystemObject, AccessType.DOWNLAODED, "Downloaded by Account \"" + account.getName() + "\"");
 
-        if(fileSystemObject instanceof File) {
+        if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
         } else {
             return getFolderResponseEntity((Folder) fileSystemObject, account);
@@ -160,13 +185,13 @@ public class InternalFileSystemService implements IInternalFileSystemService {
     }
 
     @Override
-    public ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntityByPermission(Account account, long permissionId) throws IOException {
+    public ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntityByPermission(Account account, long permissionId) throws IOException, FileSystemObjectDoesNotExistException, PermissionDoesNotExistException {
 
         Permission permission = permissionService.getPermission(account, permissionId);
         FileSystemObject fileSystemObject = permission.getShared();
         addAccessLogEntry(fileSystemObject, AccessType.DOWNLAODED, "Downloaded by Account \"" + account.getName() + "\"");
 
-        if(fileSystemObject instanceof File) {
+        if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
         } else {
             return getFolderResponseEntity((Folder) fileSystemObject, account);
@@ -191,13 +216,13 @@ public class InternalFileSystemService implements IInternalFileSystemService {
         Path path = Paths.get(System.getProperty("user.dir"), "temp", account.getId() + "" + Timestamp.valueOf(LocalDateTime.now()).getTime() + ".zip");
 
         URI p = path.toUri();
-        URI uri = URI.create( "jar:" + p );
+        URI uri = URI.create("jar:" + p);
 
         // TODO make this static maybe?
         Map<String, String> env = new HashMap<>();
-        env.put( "create", "true" );
+        env.put("create", "true");
 
-        try ( FileSystem zipfs = FileSystems.newFileSystem( uri, env ) ) {
+        try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
             addFolder(zipfs, folder, "/");
         }
 
@@ -218,30 +243,32 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
         Files.createDirectory(zipfs.getPath(path, folder.getName()));
 
-        for(FileSystemObject f : folder.getContents()) {
+        for (FileSystemObject f : folder.getContents()) {
 
-            if(f instanceof Folder) {
+            if (f instanceof Folder) {
                 addFolder(zipfs, (Folder) f, path + "/" + folder.getName());
-            } else if(f instanceof File) {
-                Files.write( zipfs.getPath(path, folder.getName(), f.toString()), Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", f.getId() + "")));
+            } else if (f instanceof File) {
+                Files.write(zipfs.getPath(path, folder.getName(), f.toString()), Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", f.getId() + "")));
             }
         }
     }
 
     @Override
     @Transactional
-    public void moveFileSystemObject(Account account, long folderId, long fileSystemObjectId) {
+    public void moveFileSystemObject(Account account, long folderId, long fileSystemObjectId) throws
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
 
         Folder newFolder = getFolder(account, folderId);
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
         Folder oldFolder = fileSystemObject.getParent();
 
-        if(newFolder.equals(fileSystemObject)) {
+        if (newFolder.equals(fileSystemObject)) {
             throw new IllegalArgumentException("FilesystemObject " + fileSystemObject + " can not be moved into itself");
         }
 
         // if moved to same folder do nothing
-        if(newFolder.equals(oldFolder)) {
+        if (newFolder.equals(oldFolder)) {
             return;
         }
 
@@ -261,10 +288,10 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Transactional
     @Override
-    public FileSystemObject getFileSystemObject(Account account, long fileSystemObjectId) {
+    public FileSystemObject getFileSystemObject(Account account, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException {
 
         FileSystemObject fileSystemObject = fileSystemObjectRepository.findById(fileSystemObjectId).orElseThrow(
-                () -> new IllegalArgumentException("fileSystemObject " + fileSystemObjectId + " does not exist"));
+                () -> new FileSystemObjectDoesNotExistException(fileSystemObjectId));
 
         if (!fileSystemObject.getOwner().equals(account)) {
             throw new IllegalArgumentException("account + " + account + " does not own fileSystemObject " + fileSystemObject);
@@ -275,12 +302,14 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Transactional
     @Override
-    public Folder getFolder(Account account, long folderId) {
+    public Folder getFolder(Account account, long folderId) throws
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, folderId);
 
         if (!(fileSystemObject instanceof Folder)) {
-            throw new IllegalArgumentException("fileSystemObject " + folderId + " is not a folder");
+            throw new NotAFolderException(folderId);
         }
 
         return (Folder) fileSystemObject;
@@ -288,15 +317,35 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Transactional
     @Override
-    public File getFile(Account account, long fileId) {
+    public File getFile(Account account, long fileId) throws
+            FileSystemObjectDoesNotExistException,
+            NotAFileException {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileId);
 
         if (!(fileSystemObject instanceof File)) {
-            throw new IllegalArgumentException("fileSystemObject " + fileId + " is not a file");
+            throw new NotAFileException(fileId);
         }
 
         return (File) fileSystemObject;
+    }
+
+    @Override
+    public Folder getRootFolderBySecretKey(String secretKey) throws AccountDoesNotExistsException {
+        return accountService.getAccountBySecretKey(secretKey).getRootFolder();
+    }
+
+    @Override
+    public ResponseEntity<ByteArrayResource> getFileResponseEntityBySecretKeyAndId(String secretKey, long fileId) throws
+            AccountDoesNotExistsException,
+            FileSystemObjectDoesNotExistException,
+            IOException,
+            NotAFileException {
+
+        Account account = accountService.getAccountBySecretKey(secretKey);
+        File file = getFile(account, fileId);
+
+        return getFileResponseEntity(file);
     }
 
     @Transactional
@@ -336,7 +385,7 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Override
     @Transactional
-    public void changeNameOfFileSystemObject(long fileSystemObjectId, Account account, String name) {
+    public void changeNameOfFileSystemObject(long fileSystemObjectId, Account account, String name) throws FileSystemObjectDoesNotExistException {
 
         // TODO input validation
 
@@ -356,10 +405,10 @@ public class InternalFileSystemService implements IInternalFileSystemService {
 
     @Transactional
     @Override
-    public void addAccessLogEntry(FileSystemObject fileSystemObject, AccessType accessType, String comment) {
+    public void addAccessLogEntry(FileSystemObject fileSystemObject, AccessType accessType, String comment) throws FileSystemObjectDoesNotExistException {
 
         if (fileSystemObject == null) {
-            throw new IllegalArgumentException("FileSystemObject is null");
+            throw new FileSystemObjectDoesNotExistException();
         }
 
         if (comment == null || comment.trim().isEmpty()) {
