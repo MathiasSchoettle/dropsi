@@ -9,10 +9,9 @@ import java.security.SecureRandom;
 @Configuration
 public class SecurityUtilities {
 
-    private static int hashStrength = 15;
+    private static final int hashStrength = 15;
 
-    // TODO replace with other source
-    private static String salt = "bitte ersetze mich";
+    private final static String salt = "2j9wqm2gma02mf0t392h30vm2";
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {

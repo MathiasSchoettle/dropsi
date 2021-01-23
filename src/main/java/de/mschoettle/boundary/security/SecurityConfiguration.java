@@ -2,7 +2,9 @@ package de.mschoettle.boundary.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,8 +26,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private SecurityUtilities securityUtilities;
 
-    // TODO remove /test
-    private static final String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/", "/api/**", "/login", "/sign_up", "/css/**", "/img/**", "/js/**", "/fonts/**"};
+    private static final String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/",
+            "/api/**",
+
+            "/api-docs",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+
+            "/login",
+            "/sign_up",
+            "/css/**",
+            "/img/**",
+            "/js/**",
+            "/fonts/**"};
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -39,6 +52,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login")
                 .deleteCookies("remember-me").permitAll()
                 .and().rememberMe();
+
+        // TODO how to achieve this differently
+        // needed so POST requests are possible
+        http.csrf().disable();
     }
 
     @Autowired

@@ -1,7 +1,9 @@
 package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.service.IAccountService;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -20,11 +22,6 @@ public class LoginController {
 
     @Autowired
     private MainController mainController;
-
-    @RequestMapping(value ="/test")
-    public String test(Model model) {
-        return "test";
-    }
 
     @RequestMapping(value = {"/login", "/"})
     public String showLoginView(Model model) {

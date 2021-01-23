@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+    <title>Shared</title>
+</head>
+<body>
+
+<div class="container-fluid text-white">
+
+    <!-- header -->
+    <div th:replace="fragments/header :: header(${account})"></div>
+
+    <div class="row flex-column flex-md-row main-body overflow-auto">
+
+        <!-- nav bar -->
+        <div class="col-md-3 col-lg-2 bgdarker flex-shrink-1">
+            <nav class="navbar navbar-expand">
+                <div class="row d-flex justify-content-around collapse navbar-collapse p-0 text-nowrap">
+                    <div class="col-3 col-md-12 p-1 mb-2 text-center bgdark r-md">
+                        <a class="text-white-50 stretched-link" th:href="@{/home}">My Files</a>
+                    </div>
+                    <div class="col-3 col-md-12 p-1 mb-2 text-center r-md bgdark">
+                        <a class="text-white-50 stretched-link" th:href="@{/permissions/received}">Shares</a>
+                    </div>
+                    <div class="col-5 col-md-12 p-1 mb-2 text-center bgdark r-md">
+                        <a class="text-white stretched-link font-weight-bold" th:href="@{/permissions/given}">Shared</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="col-md-9 col-lg-10 bgmedium radius-topleft p-3 flex-grow-1">
+
+            <div th:each="permission : ${permissions}" class="flex-column r-sm p-2 d-flex bgdark mb-3">
+                <div class="ml-1 d-flex flex-row justify-content-between f-md">
+                    <div class="d-flex flex-row">
+                        <i class="d-flex flex-column justify-content-center material-icons"
+                           th:text="${permission.key.isFolder() ? 'folder' : 'description'}"></i>
+                        <div class="ml-3 d-flex flex-column justify-content-center">
+                            <div class="font-weight-bold" th:text="${permission.key.name}"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-row">
+                        <div class=" d-flex flex-column justify-content-center mr-3">
+                            <form th:action="@{/permissions/given/all(fileSystemObjectId=${permission.key.id})}" th:method="DELETE">
+                                <button class="btn btn-sm btn-warning font-weight-bold">
+                                    Remove all
+                                </button>
+                            </form>
+                        </div>
+                        <div class="mr-2 d-flex flex-column justify-content-center">
+                            <div th:text="${permission.key.getPrettyFileSize()}"></div>
+                            <div class="f-xs text-white-50"
+                                 th:text="${#temporals.format(permission.key.creationDate, 'dd.MM.yyyy hh:mm')}"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="bgdarker p-1 mt-2 r-sm">
+                    <div class="d-flex flex-row flex-wrap">
+
+
+                        <div th:each="receiver : ${permission.value}"
+                             class="m-1 rounded-circle overflow-hidden position-relative permissionUserContainer">
+
+                                <form th:action="@{/permissions/given(accountId=${receiver.id}, fileSystemObjectId=${permission.key.id})}"
+                                  th:method="DELETE">
+
+                                <img class="position-absolute permissionUser permissionImage"
+                                     th:src="@{'data:image/png;base64,' + ${receiver.getAvatarBytes()}}">
+
+                                <button type="submit"
+                                        class="d-flex flex-row rounded-circle justify-content-center border-0 p-0 m-0 position-absolute permissionUser permissionBackdrop"
+                                        data-toggle="tooltip" data-placement="bottom" th:title="${receiver.name}">
+                                    <i class="d-flex flex-column justify-content-center material-icons p-2 text-decoration-none text-white f-lgr">delete</i>
+                                </button>
+                            </form>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

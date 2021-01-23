@@ -1,10 +1,18 @@
-package de.mschoettle.entity.pojo;
+package de.mschoettle.entity.dto;
 
-import de.mschoettle.entity.Folder;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.time.LocalDateTime;
 
-public abstract class FileSystemObjectPojo {
+@JsonTypeInfo(
+        use=JsonTypeInfo.Id.NAME,
+        property="type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value= FolderDTO.class, name = "folder"),
+        @JsonSubTypes.Type(value= FileDTO.class, name = "file")})
+
+public abstract class FileSystemObjectDTO {
 
     private long id = 0;
 
@@ -14,7 +22,10 @@ public abstract class FileSystemObjectPojo {
 
     private long fileSize = 0;
 
-    public FileSystemObjectPojo(long id, String name, LocalDateTime creationDate, long fileSize) {
+    public FileSystemObjectDTO() {
+    }
+
+    public FileSystemObjectDTO(long id, String name, LocalDateTime creationDate, long fileSize) {
         this.id = id;
         this.name = name;
         this.creationDate = creationDate;

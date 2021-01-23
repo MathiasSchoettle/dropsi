@@ -1,14 +1,10 @@
 package de.mschoettle.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sun.source.tree.Tree;
 import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.text.DecimalFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Entity
@@ -24,31 +20,21 @@ public abstract class FileSystemObject {
 
     private LocalDateTime creationDate = LocalDateTime.MIN;
 
-    @JsonIgnore
-    private LocalDateTime lastUpdateDate = LocalDateTime.MIN;
-
     private long fileSize = 0;
 
     @ManyToOne
-    @JsonIgnore
     private Account owner = null;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonIgnore
     private Folder parent = null;
 
     @SortNatural
     @OrderBy("creationDate DESC")
     @OneToMany(mappedBy = "reference", cascade = CascadeType.REMOVE)
-    @JsonIgnore
     private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "shared", cascade = CascadeType.REMOVE)
-    @JsonIgnore
     private List<Permission> permissions = new ArrayList<>();
-
-    @JsonIgnore
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
 
     public FileSystemObject() {
     }
@@ -56,63 +42,29 @@ public abstract class FileSystemObject {
     public FileSystemObject(String name, long fileSize, Account owner, Folder parent) {
         this.name = name;
         this.creationDate = LocalDateTime.now();
-        this.lastUpdateDate = this.creationDate;
         this.fileSize = fileSize;
         this.owner = owner;
         this.parent = parent;
     }
 
-    public void addAccessLogEntry(AccessLogEntry accessLogEntry) {
-
-        if (accessLogEntry == null) {
-            throw new IllegalArgumentException("AccessLogEntry was null");
-        }
-
-        if (accessLogs.contains(accessLogEntry)) {
-            throw new IllegalArgumentException("Duplicate AccessLogEntry: " + accessLogEntry);
-        }
-
-        accessLogs.add(0, accessLogEntry);
-    }
-
+    // this is used in thymeleaf to render the file and folder instances
     public boolean isFolder() {
         return this instanceof Folder;
     }
 
-    @JsonIgnore
-    public Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap() {
+    // TODO remove or in service
+    public Optional<Permission> removePermissionByAccount(Account account) {
 
-        Map<LocalDate, List<AccessLogEntry>> map = new HashMap<>();
-
-        for (AccessLogEntry a : accessLogs) {
-
-            LocalDate ld = a.getCreationDate().toLocalDate();
-
-            if (map.containsKey(ld)) {
-                map.get(ld).add(a);
-            } else {
-                List<AccessLogEntry> list = new ArrayList<>();
-                list.add(a);
-                map.put(ld, list);
+        for (Permission p : permissions) {
+            if (p.getReceiver().equals(account)) {
+                permissions.remove(p);
+                return Optional.of(p);
             }
         }
 
-        return map;
+        return Optional.empty();
     }
 
-    // TODO remove
-    @JsonIgnore
-    public String getPrettyCreationDate() {
-        return dtf.format(this.creationDate);
-    }
-
-    // TODO remove
-    @JsonIgnore
-    public String getPrettyLastUpdateDate() {
-        return dtf.format(this.creationDate);
-    }
-
-    // TODO rethink this
     public String getPrettyFileSize() {
 
         StringBuilder sb = new StringBuilder();
@@ -164,10 +116,6 @@ public abstract class FileSystemObject {
         return creationDate;
     }
 
-    public LocalDateTime getLastUpdateDate() {
-        return lastUpdateDate;
-    }
-
     public long getFileSize() {
         return fileSize;
     }
@@ -196,10 +144,6 @@ public abstract class FileSystemObject {
         this.creationDate = creationDate;
     }
 
-    public void setLastUpdateDate(LocalDateTime lastUpdateDate) {
-        this.lastUpdateDate = lastUpdateDate;
-    }
-
     public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
     }
@@ -210,5 +154,9 @@ public abstract class FileSystemObject {
 
     public void setParent(Folder parent) {
         this.parent = parent;
+    }
+
+    public void setPermissions(List<Permission> permissions) {
+        this.permissions = permissions;
     }
 }

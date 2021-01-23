@@ -27,4 +27,6 @@ public interface IAccountService extends UserDetailsService {
     Account getAccountBySecretKey(String token) throws AccountDoesNotExistsException;
 
     List<Account> getAllAccounts();
+
+    boolean accountWithSecretKeyExists(String secretKey);
 }

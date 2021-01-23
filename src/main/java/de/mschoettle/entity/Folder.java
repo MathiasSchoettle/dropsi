@@ -1,6 +1,6 @@
 package de.mschoettle.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,8 +11,9 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Folder extends FileSystemObject {
 
-    // TODO make this only go in one layer
-    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @SortNatural
+    @OrderBy("creationDate ASC")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<FileSystemObject> contents = new ArrayList<>();
 
     public Folder(String name, long fileSize, Account owner, Folder parent) {
@@ -23,19 +24,6 @@ public class Folder extends FileSystemObject {
     public Folder() {}
 
     public void addFileSystemObject(FileSystemObject fileSystemObject) {
-
-        if (fileSystemObject == null) {
-            throw new IllegalArgumentException("FileSystemObject is null");
-        }
-
-        if (this.equals(fileSystemObject)) {
-            throw new IllegalArgumentException("Folder and FileSystemObject are the same");
-        }
-
-        if (this.contents.contains(fileSystemObject)) {
-            throw new IllegalArgumentException("Folder already contains FileSystemObject: " + fileSystemObject);
-        }
-
         this.contents.add(fileSystemObject);
     }
 

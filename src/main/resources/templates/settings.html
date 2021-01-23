@@ -130,15 +130,13 @@
                                    placeholder="To be implemented" disabled th:field="*{secretKey}">
                         </div>
 
-                        <button type="button" onclick="copy()" class="btn btn-warning btn-sm btn-block">Copy you secret
+                        <button type="button" onclick="copy()" class="btn btn-warning btn-sm btn-block">Copy your secret
                             Key
                         </button>
 
                         <!-- script to copy secretKey into clipboard -->
                         <script th:inline="javascript">
-                            /*<![CDATA[*/
-
-                            let text = /*[[${secretKey}]]*/ 'default';
+                            let text = [[${secretKey}]];
 
                             function copy() {
                                 let textarea = document.createElement("textarea");
@@ -153,8 +151,6 @@
                             function showToast() {
                                 $('.toast').toast('show');
                             }
-
-                            /*]]>*/
                         </script>
 
                         <hr/>

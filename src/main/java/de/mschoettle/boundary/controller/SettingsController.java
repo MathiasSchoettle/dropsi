@@ -5,18 +5,17 @@ import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.ManyToOne;
-import javax.security.auth.login.CredentialException;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
 
 @Controller
 @Scope("session")
@@ -46,7 +45,6 @@ public class SettingsController {
         return "settings";
     }
 
-    // TODO refactor this maybe
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     public String saveSettings(Model model, Principal principal,
                                @ModelAttribute Account account,
@@ -61,12 +59,17 @@ public class SettingsController {
         boolean triedToChangeEmail = !account.getEmail().trim().equals("");
         boolean changedEmail = !accountService.isEmailTaken(account.getEmail());
 
+
         if (triedToChangeUsername && changedUsername) {
             authenticatedAccount.setName(account.getName());
         }
 
         if (triedToChangeEmail && changedEmail) {
             authenticatedAccount.setEmail(account.getEmail());
+        }
+
+        if (avatarImage.length > 0 && avatarImage[0].getSize() > 0 && avatarImage[0].getSize() < 500000) {
+            authenticatedAccount.setAvatar(avatarImage[0].getBytes());
         }
 
         model.addAttribute("name", authenticatedAccount.getName());
@@ -80,11 +83,14 @@ public class SettingsController {
 
         model.addAttribute("account", new Account());
 
-        if(avatarImage.length > 0) {
-            authenticatedAccount.setAvatar(avatarImage[0].getBytes());
-        }
-
         accountService.saveAccount(authenticatedAccount);
+
+        Authentication a = new UsernamePasswordAuthenticationToken(
+                authenticatedAccount,
+                null,
+                ((UserDetails) authenticatedAccount).getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(a);
 
         return "settings";
     }

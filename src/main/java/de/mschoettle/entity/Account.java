@@ -53,6 +53,7 @@ public class Account implements UserDetails {
         this.hashedPassword = hashedPassword;
     }
 
+    // TODO move to Service
     public boolean hasPermission(FileSystemObject fileSystemObject) {
         for (Permission p : permissions) {
             if (p.getShared().equals(fileSystemObject)) {
@@ -76,6 +77,7 @@ public class Account implements UserDetails {
         this.permissions.remove(permission);
     }
 
+    // TODO move to service or controller
     public Map<Account, List<Permission>> getPermissionMap() {
 
         Map<Account, List<Permission>> permissionMap = new HashMap<>();
@@ -93,12 +95,13 @@ public class Account implements UserDetails {
         return permissionMap;
     }
 
+    // TODO move to service
     public String getAvatarBytes() {
 
         if(avatar == null) {
             try {
-                File resource = new ClassPathResource("static/img/user.png").getFile();
-                return Base64.getEncoder().encodeToString(Files.readAllBytes(resource.toPath()));
+                byte[] bytes = new ClassPathResource("static/img/user.png").getInputStream().readAllBytes();
+                return Base64.getEncoder().encodeToString(bytes);
             } catch (IOException e) {
                 e.printStackTrace();
             }

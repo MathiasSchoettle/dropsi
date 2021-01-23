@@ -23,16 +23,18 @@ public class Permission {
     private Account receiver;
 
     @ManyToOne
+    private Account provider;
+
+    @ManyToOne
     private FileSystemObject shared;
 
     public Permission() {}
 
-    public Permission(Account receiver, FileSystemObject shared) {
+    public Permission(Account receiver, Account provider, FileSystemObject shared) {
         this.receiver = receiver;
+        this.provider = provider;
         this.shared = shared;
         this.creationDate = LocalDateTime.now();
-
-        // TODO either remove this or make it have some kind of meaning (if there is time)
     }
 
     @Override
@@ -64,6 +66,10 @@ public class Permission {
         return receiver;
     }
 
+    public Account getProvider() {
+        return provider;
+    }
+
     public FileSystemObject getShared() {
         return shared;
     }
@@ -74,6 +80,10 @@ public class Permission {
 
     public void setReceiver(Account receiver) {
         this.receiver = receiver;
+    }
+
+    public void setProvider(Account provider) {
+        this.provider = provider;
     }
 
     public void setShared(FileSystemObject shared) {

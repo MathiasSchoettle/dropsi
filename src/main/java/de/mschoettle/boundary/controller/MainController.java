@@ -2,10 +2,12 @@ package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
+import de.mschoettle.control.exception.NotAFileException;
 import de.mschoettle.control.exception.NotAFolderException;
 import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.entity.Account;
+import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
+import java.util.Random;
 
 @Controller
 @Scope("session")
@@ -68,13 +71,29 @@ public class MainController {
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
     public String uploadFile(Model model, Principal principal,
                              @RequestParam("folderId") long folderId,
-                             @RequestParam("uploadedFile") MultipartFile[] files) throws
+                             @RequestParam("uploadedFile") MultipartFile file) throws
             IOException,
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
-        fileSystemService.addFileToFolder(getAuthenticatedAccount(principal), folderId, files);
+        fileSystemService.addMultipartFileToFolder(getAuthenticatedAccount(principal), folderId, file);
         addFolderToModel(model, principal, folderId);
+        return "main";
+    }
+
+    @RequestMapping(value = "/filesystemobject/copy", method = RequestMethod.POST)
+    public String copyFileSystemObject(Model model, Principal principal,
+                             @RequestParam("fileSystemObjectId") long fileSystemObjectId,
+                             @RequestParam("parentId") long parentId) throws
+            IOException,
+            FileSystemObjectDoesNotExistException,
+            NotAFolderException,
+            NotAFileException {
+
+        Account account = getAuthenticatedAccount(principal);
+        fileSystemService.copyFileSystemObject(account, fileSystemObjectId, parentId);
+
+        addFolderToModel(model, principal, parentId);
         return "main";
     }
 
@@ -88,6 +107,28 @@ public class MainController {
 
         fileSystemService.deleteFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
         addFolderToModel(model, principal, folderId);
+        return "main";
+    }
+
+    @RequestMapping(value = "/share/retrogram", method = RequestMethod.POST)
+    public String postToRetrogram(Model model, Principal principal,
+                                  @RequestParam("fileId") long fileId,
+                                  @RequestParam("folderId") long folderId) throws
+            NotAFileException,
+            FileSystemObjectDoesNotExistException,
+            IOException {
+
+        // TODO do this all in service and build Post object of Retrogram
+        File file = fileSystemService.getFile(getAuthenticatedAccount(principal), fileId);
+
+
+        String description = "posted by Dropsi";
+        byte[] data = fileSystemService.getByteArrayOfFile(getAuthenticatedAccount(principal), fileId);
+        String fileType = file.getFileExtension();
+
+        model.addAttribute("popupString", new Random().nextBoolean() ? "❤ Posted Image to Retrogram" : "❌ Could not post Image to Retrogram");
+        addFolderToModel(model, principal, folderId);
+        // TODO call post rest method of Retrogram
         return "main";
     }
 
@@ -112,6 +153,11 @@ public class MainController {
 
     public Account getAuthenticatedAccount(Principal principal) {
         return (Account) accountService.loadUserByUsername(principal.getName());
+    }
+
+    @ModelAttribute("popupString")
+    public String getPopupMessageString() {
+        return "";
     }
 
     // TODO exception handling

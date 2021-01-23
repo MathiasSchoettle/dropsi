@@ -12,21 +12,7 @@
 <div class="container-fluid text-white">
 
     <!-- header -->
-    <div class="row bgdarker main-header">
-        <div class="col-6 col-md-3 col-lg-2 d-flex h-100 p-0">
-            <a th:href="@{/home}" class="flex-row d-flex">
-                <img th:src="@{/img/logo.png}" class="img-fluid mh-100 m-md-auto pt-1 pb-1 pl-1" alt="logo"/>
-            </a>
-        </div>
-
-        <div class="col-6 col-md-9 col-lg-10 d-flex justify-content-end p-0">
-            <div class="flex-column d-flex justify-content-center mr-4">
-                <a th:href="@{/settings}" class="text-white">
-                    <i class="material-icons f-xl">account_circle</i>
-                </a>
-            </div>
-        </div>
-    </div>
+    <div th:replace="fragments/header :: header(${account})"></div>
 
     <div class="row flex-column flex-md-row main-body overflow-auto">
 
@@ -38,10 +24,10 @@
                         <a class="text-white-50 stretched-link" th:href="@{/home}">My Files</a>
                     </div>
                     <div class="col-5 col-md-12 p-1 mb-2 text-center r-md bgdark">
-                        <a class="text-white stretched-link font-weight-bold" href="#">Shares</a>
+                        <a class="text-white stretched-link font-weight-bold" th:href="@{/permissions/received}">Shares</a>
                     </div>
                     <div class="col-3 col-md-12 p-1 mb-2 text-center bgdark r-md">
-                        <a class="text-white-50 stretched-link" href="#">Shared</a>
+                        <a class="text-white-50 stretched-link" th:href="@{/permissions/given}">Shared</a>
                     </div>
                 </div>
             </nav>
@@ -51,6 +37,7 @@
             <div th:each="share : ${shares}" class="flex-column r-sm p-2 d-flex bgdark mb-3">
 
                 <div class="flex-row d-flex ml-2 mb-2">
+
                     <img th:src="@{'data:image/png;base64,' + ${share.key.getAvatarBytes()}}" class="rounded-circle shadow-lg" style="height: 2.5em; width: 2.5em;">
 
                     <div class="flex-column d-flex justify-content-center ml-3">

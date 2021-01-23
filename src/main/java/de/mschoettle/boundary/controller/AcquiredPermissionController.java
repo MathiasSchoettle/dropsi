@@ -70,19 +70,16 @@ public class AcquiredPermissionController {
         return "permissionsReceived";
     }
 
-    // TODO not found does not mean IOException
     /**
-     * If a IOException is thrown return an not found response
+     * If a IOException is thrown return a internal server error
      *
      * @return not found response
      */
     @ExceptionHandler(IOException.class)
-    public ResponseEntity<Void> handleException() {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<String> handleException() {
+        return ResponseEntity.status(500).body("A problem occured internally");
     }
 
-    // TODO maybe instead of just showing the same view again make a dynamic error view to tell the user what went wrong ->
-    //  when he downloads say it was deleted
     /**
      * If a FileSystemObjectDoesNotExistException is thrown the main permissions received view should be shown again
      *

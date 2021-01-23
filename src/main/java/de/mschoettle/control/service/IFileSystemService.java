@@ -15,21 +15,27 @@ public interface IFileSystemService {
 
     void deleteFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException, IOException, NotAFolderException;
 
+    void copyFileSystemObject(Account account, long fileSystemObject, long parentId) throws FileSystemObjectDoesNotExistException, NotAFileException, IOException, NotAFolderException;
+
     void giveAccountRootFolder(Account account) throws AccountDoesNotExistsException, FileSystemObjectDoesNotExistException;
 
     void addNewFolderToFolder(Account account, long parentFolderId, String childFolderName) throws AccountDoesNotExistsException, FileSystemObjectDoesNotExistException, NotAFolderException;
 
-    void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) throws IOException, FileSystemObjectDoesNotExistException, NotAFolderException;
+    void addMultipartFileToFolder(Account account, long parentFolderId, MultipartFile f) throws IOException, FileSystemObjectDoesNotExistException, NotAFolderException;
 
     ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntity(Account account, long fileId) throws IOException, FileSystemObjectDoesNotExistException;
 
     ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntityByPermission(Account account, long permissionId) throws IOException, FileSystemObjectDoesNotExistException, PermissionDoesNotExistException;
+
+    byte[] getByteArrayOfFile(Account account, long fileId) throws NotAFileException, FileSystemObjectDoesNotExistException, IOException;
 
     Optional<FileSystemObject> getFileSystemObjectById(long id, Account account);
 
     void changeNameOfFileSystemObject(long id, Account account, String name) throws FileSystemObjectDoesNotExistException;
 
     void recalculateSize(Folder folder);
+
+    String getAvailableName(Folder folder, String name);
 
     void moveFileSystemObject(Account account, long folderId, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException, NotAFolderException;
 

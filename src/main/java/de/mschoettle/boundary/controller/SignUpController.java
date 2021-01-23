@@ -60,6 +60,7 @@ public class SignUpController {
             AccountNameTakenException {
 
         accountService.createNewAccount(account);
+
         return "login";
     }
 

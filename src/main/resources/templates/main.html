@@ -6,27 +6,18 @@
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
     <title th:text="${'📁 - ' + currentFolder.name}"></title>
+    <script>
+        window.onload = function () {
+            $('.toast').toast('show');
+        }
+    </script>
 </head>
 <body>
 
 <div class="container-fluid text-white">
 
     <!-- header -->
-    <div class="row bgdarker main-header">
-        <div class="col-6 col-md-3 col-lg-2 d-flex h-100 p-0">
-            <a th:href="@{/home}" class="flex-row d-flex">
-                <img th:src="@{/img/logo.png}" class="img-fluid mh-100 m-md-auto pt-1 pb-1 pl-1" alt="logo"/>
-            </a>
-        </div>
-
-        <div class="col-6 col-md-9 col-lg-10 d-flex justify-content-end p-0">
-            <div class="flex-column d-flex justify-content-center mr-4">
-                <a th:href="@{/settings}" class="text-white">
-                    <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}" class="rounded-circle bx-shdw" style="height: 2.8em; width: 2.8em;">
-                </a>
-            </div>
-        </div>
-    </div>
+    <div th:replace="fragments/header :: header(${account})"></div>
 
     <div class="row flex-column flex-md-row main-body">
 
@@ -35,19 +26,19 @@
             <nav class="navbar navbar-expand">
                 <div class="row d-flex justify-content-around collapse navbar-collapse p-0 text-nowrap">
                     <div class="col-5 col-md-12 p-1 mb-2 text-center r-md bgdark">
-                        <a class="text-white stretched-link font-weight-bold" href="#">My Files</a>
+                        <a class="text-white stretched-link font-weight-bold" th:href="@{/home}">My Files</a>
                     </div>
                     <div class="col-3 col-md-12 p-1 mb-2 text-center bgdark r-md">
                         <a class="text-white-50 stretched-link" th:href="@{/permissions/received}">Shares</a>
                     </div>
                     <div class="col-3 col-md-12 p-1 mb-2 text-center bgdark r-md">
-                        <a class="text-white-50 stretched-link" href="#">Shared</a>
+                        <a class="text-white-50 stretched-link" th:href="@{/permissions/given}">Shared</a>
                     </div>
                 </div>
             </nav>
         </div>
 
-        <div class="col-md-9 col-lg-10 bgmedium radius-topleft p-3 mh-100 overflow-auto flex-grow-1">
+        <div class="col-md-9 col-lg-10 bgmedium radius-topleft p-3 mh-100 overflow-auto flex-grow-1 relative">
 
             <div class="flex-row d-flex mb-2">
 
@@ -78,10 +69,8 @@
                 <div class="flex-column d-flex justify-content-center flex-grow-1 p-0 r-sm bgdarker text-nowrap"
                      style="overflow-x: scroll;">
                     <div class="flex-row mt-1 pl-3 d-flex f-sm">
-
                         <div th:replace="fragments/folderBreadcrumb :: folder_breadcrumb(${currentFolder})"></div>
                         <li class="breadcrumb-item active text-secondary pr-2" th:text="${currentFolder.name}"></li>
-
                     </div>
                 </div>
             </div>
@@ -106,6 +95,19 @@
                 </div>
 
                 <div class="flex-row d-flex">
+
+                    <!-- retrogram  -->
+                    <div th:if="${account.retrogramToken != null && !filesystemobject.isFolder()}"
+                         class="flex-column d-flex justify-content-center">
+                        <form th:if="${(filesystemobject.fileType == 'image/png') || (filesystemobject.fileType == 'image/jpeg')}"
+                              th:action="@{/share/retrogram(fileId=${filesystemobject.id}, folderId=${currentFolder.id})}"
+                              th:method="POST">
+                            <button type="submit" style="background-color: transparent"
+                                    class="text-white bgdarkhov r-sm m-0 p-0 border-0">
+                                <i class="material-icons p-1 f-lg">photo_camera</i>
+                            </button>
+                        </form>
+                    </div>
 
                     <!-- download -->
                     <div class="flex-column d-flex justify-content-center">
@@ -144,11 +146,15 @@
                                     Move
                                 </a>
 
-                                <a href="#" class="dropdown-item text-dark bgdarkhov">
-                                    Copy
-                                </a>
+                                <form th:action="@{/filesystemobject/copy(fileSystemObjectId=${filesystemobject.id}, parentId=${currentFolder.id})}"
+                                      th:method="POST">
+                                    <button type=submit class="dropdown-item text-white bgdarkhov">
+                                        Copy
+                                    </button>
+                                </form>
 
-                                <a th:href="@{/share(fileSystemObjectId=${filesystemobject.id})}" class="dropdown-item text-white bgdarkhov">
+                                <a th:href="@{/share(fileSystemObjectId=${filesystemobject.id})}"
+                                   class="dropdown-item text-white bgdarkhov">
                                     Share
                                 </a>
 
@@ -159,8 +165,19 @@
                     <!-- Size and Date -->
                     <div class="flex-column ml-0 ml-md-2 mr-2 d-flex text-center justify-content-center text-nowrap">
                         <div class="f-sm" th:text="${filesystemobject.getPrettyFileSize()}"></div>
-                        <div class="text-white-50 f-xs" th:text="${filesystemobject.getPrettyCreationDate()}"></div>
+                        <div class="text-white-50 f-xs"
+                             th:text="${#temporals.format(filesystemobject.creationDate, 'dd.MM.yyyy hh:mm')}"></div>
                     </div>
+                </div>
+            </div>
+
+            <div th:if="${popupString != null && !popupString.isEmpty()}" aria-live="polite" aria-atomic="true"
+                 class="flex-row d-flex justify-content-center align-items-center"
+                 style="position: absolute; z-index: 9999;">
+
+                <!-- Then put toasts within -->
+                <div class="toast bgdarker" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+                    <div class="toast-body" th:text="${popupString}"></div>
                 </div>
             </div>
         </div>

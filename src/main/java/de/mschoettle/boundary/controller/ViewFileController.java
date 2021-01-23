@@ -38,7 +38,6 @@ public class ViewFileController {
         File file = fileSystemService.getFile(mainController.getAuthenticatedAccount(principal), fileId);
         model.addAttribute("parentId", file.getParent().getId());
 
-        // TODO move strings into ENUM or something
         switch (file.getFileType()) {
             case "image/png", "image/jpeg", "image/gif" -> {
                 return prepareForImage(model, file);

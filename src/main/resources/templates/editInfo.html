@@ -72,7 +72,7 @@
 
                         <div class="bgmedium r-md d-flex flex-column p-2" style="height: 273px; overflow-y: scroll">
 
-                            <div th:each="day : ${fileSystemObject.getAccessLogEntriesMap()}" class="d-flex flex-row justify-content-between bgdark overflow-scroll r-sm mb-2 p-2">
+                            <div th:each="day : ${accessLogMap}" class="d-flex flex-row justify-content-between bgdark overflow-scroll r-sm mb-2 p-2">
                                 <div class="d-flex flex-column justify-content-between flex-grow-1">
                                     <div class="font-weight-bold pl-2" th:text="${#temporals.format(day.key, 'dd.MM.yyyy')}"></div>
                                     <ul class="list-group r-sm mt-1">

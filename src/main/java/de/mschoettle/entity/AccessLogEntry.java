@@ -25,10 +25,6 @@ public class AccessLogEntry implements Comparable<AccessLogEntry> {
 
     private LocalDateTime creationDate;
 
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyy hh:mm");
-
-    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("hh:mm");
-
     public AccessLogEntry(){}
 
     public AccessLogEntry(FileSystemObject reference, AccessType type, String comment) {
@@ -65,10 +61,6 @@ public class AccessLogEntry implements Comparable<AccessLogEntry> {
                 ", comment='" + comment + '\'' +
                 ", creationDate=" + creationDate +
                 '}';
-    }
-
-    public String getPrettyTime() {
-        return dtf_time.format(creationDate);
     }
 
     public long getId() {

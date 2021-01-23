@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
-import java.awt.datatransfer.FlavorEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.sql.Array;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,8 +34,6 @@ public class FileSystemService implements IFileSystemService {
     private IAccessLogEntryRepository accessLogEntryRepository;
 
     private IAccountService accountService;
-
-    private static final List<String> SUPPORTED_FILE_TYPES = Arrays.asList("image/png", "text/plain");
 
     @Autowired
     public void setInjectedBean(IAccountService accountService,
@@ -67,6 +65,77 @@ public class FileSystemService implements IFileSystemService {
 
         addAccessLogEntry(parentFolder, AccessType.EDITED, "Deleted child \"" + childName + "\"");
         recalculateSize(parentFolder);
+    }
+
+    @Override
+    @Transactional
+    public void copyFileSystemObject(Account account, long fileSystemObjectId, long parentId) throws
+            FileSystemObjectDoesNotExistException,
+            NotAFileException,
+            IOException,
+            NotAFolderException {
+
+        cloneFileSystemObject(account, fileSystemObjectId, parentId);
+    }
+
+    @Transactional
+    public FileSystemObject cloneFileSystemObject(Account account, long fileSystemObjectId, long parentId) throws
+            FileSystemObjectDoesNotExistException,
+            NotAFileException,
+            IOException,
+            NotAFolderException {
+
+        FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
+
+        if(fileSystemObject instanceof Folder) {
+            return cloneFolder(account, fileSystemObjectId, parentId);
+        } else {
+            return cloneFile(account, fileSystemObjectId, parentId);
+        }
+    }
+
+    @Transactional
+    public Folder cloneFolder(Account account, long folderId, long parentId) throws
+            NotAFolderException,
+            FileSystemObjectDoesNotExistException,
+            IOException,
+            NotAFileException {
+
+        Folder folder = getFolder(account, folderId);
+        Folder parent = getFolder(account, parentId);
+        Folder copied = new Folder(getAvailableName(parent, folder.getName()), folder.getFileSize(), account, parent);
+
+        saveFileSystemObject(copied);
+
+        parent.addFileSystemObject(copied);
+        saveFileSystemObject(parent);
+
+        for(FileSystemObject f : folder.getContents()) {
+            copied.addFileSystemObject(cloneFileSystemObject(account, f.getId(), copied.getId()));
+        }
+
+        saveFileSystemObject(copied);
+        return copied;
+    }
+
+    @Transactional
+    public File cloneFile(Account account, long fileId, long parentId) throws NotAFileException, FileSystemObjectDoesNotExistException, NotAFolderException, IOException {
+
+        File file = getFile(account, fileId);
+        Folder parent = getFolder(account, parentId);
+        File copied = new File(getAvailableName(parent, file.getName()) + "", file.getFileSize(), account, parent, file.getFileExtension(), file.getFileType());
+        addAccessLogEntry(file, AccessType.COPIED, "File was copied");
+        saveFileSystemObject(copied);
+        copied.setFileReference(copied.getId() + "");
+
+        saveFileSystemObject(copied);
+
+        parent.addFileSystemObject(copied);
+        saveFileSystemObject(parent);
+
+        Files.write(Paths.get(System.getProperty("user.dir"), "files", copied.getFileReference()), getByteArrayOfFile(account, fileId), StandardOpenOption.CREATE);
+
+        return copied;
     }
 
     private void removePhysicalFilesOfChildren(FileSystemObject fileSystemObject) throws IOException {
@@ -125,21 +194,18 @@ public class FileSystemService implements IFileSystemService {
         saveFileSystemObject(parentFolder);
     }
 
-    // TODO refactor this, multiple files or even directories and rename method to something with upload
     @Override
     @Transactional
-    public void addFileToFolder(Account account, long parentFolderId, MultipartFile[] files) throws
+    public void addMultipartFileToFolder(Account account, long parentFolderId, MultipartFile f) throws
             IOException,
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
         Folder parentFolder = getFolder(account, parentFolderId);
 
-        if (files == null || files.length < 1 || files[0] == null) {
+        if (f == null || f.getSize() < 0) {
             throw new IllegalArgumentException("MultiPartFile was null or empty");
         }
-
-        MultipartFile f = files[0];
 
         if (f.getOriginalFilename() == null || f.getOriginalFilename().trim().isEmpty()) {
             throw new IllegalArgumentException("MultiPartFiles name was null or empty");
@@ -156,7 +222,6 @@ public class FileSystemService implements IFileSystemService {
         File file = new File(name, f.getSize(), account, parentFolder, extension, f.getContentType());
         saveFileSystemObject(file);
 
-        // TODO what should the fileRef actually be, is only id sufficient?
         String fileRef = file.getId() + "";
         addAccessLogEntry(file, AccessType.CREATED, "Created File \"" + file.getName() + "\"");
         file.setFileReference(fileRef);
@@ -166,7 +231,6 @@ public class FileSystemService implements IFileSystemService {
         addAccessLogEntry(parentFolder, AccessType.EDITED, "Uploaded new File \"" + file.getName() + "\"");
         recalculateSize(parentFolder);
 
-        // TODO make this constant somewhere
         Files.write(Paths.get(System.getProperty("user.dir"), "files", fileRef), f.getBytes(), StandardOpenOption.CREATE);
     }
 
@@ -218,7 +282,6 @@ public class FileSystemService implements IFileSystemService {
         URI p = path.toUri();
         URI uri = URI.create("jar:" + p);
 
-        // TODO make this static maybe?
         Map<String, String> env = new HashMap<>();
         env.put("create", "true");
 
@@ -251,6 +314,11 @@ public class FileSystemService implements IFileSystemService {
                 Files.write(zipfs.getPath(path, folder.getName(), f.toString()), Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", f.getId() + "")));
             }
         }
+    }
+
+    @Override
+    public byte[] getByteArrayOfFile(Account account, long fileId) throws NotAFileException, FileSystemObjectDoesNotExistException, IOException {
+        return Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", getFile(account, fileId).getFileReference()));
     }
 
     @Override
@@ -384,10 +452,31 @@ public class FileSystemService implements IFileSystemService {
     }
 
     @Override
+    public String getAvailableName(Folder folder, String name) {
+
+        if(folder == null || name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("folder or name was not valid");
+        }
+
+        name = name.trim();
+
+        for(FileSystemObject f : folder.getContents()) {
+            if(f.getName().equals(name)) {
+                if(name.matches(".*\\([0-9]*\\)$")) {
+                    int number = Integer.parseInt(name.charAt(name.length() - 2) + "");
+                    return getAvailableName(folder, name.substring(0, name.length() - 3) + " (" + (number + 1) + ")");
+                } else {
+                    return getAvailableName(folder, name + " (1)");
+                }
+            }
+        }
+
+        return name;
+    }
+
+    @Override
     @Transactional
     public void changeNameOfFileSystemObject(long fileSystemObjectId, Account account, String name) throws FileSystemObjectDoesNotExistException {
-
-        // TODO input validation
 
         if (name != null && !name.trim().isEmpty()) {
             FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
@@ -415,7 +504,6 @@ public class FileSystemService implements IFileSystemService {
             throw new IllegalArgumentException("Comment is null or empty");
         }
 
-        // TODO check this somewhere else maybe? or add boolean to folder isRootFolder
         // don't add AccessLogEntries to root folder -> are not accessible for user anyways
         if (fileSystemObject.getParent() == null) {
             return;

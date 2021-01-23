@@ -8,6 +8,8 @@ import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IFileSystemService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.repository.IAccountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,6 +33,10 @@ public class AccountService implements IAccountService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    @Qualifier("service")
+    private Logger logger;
 
     @Override
     public void createNewAccount(Account account) throws
@@ -116,6 +122,7 @@ public class AccountService implements IAccountService {
         }
 
         accountRepo.save(account);
+        logger.info("saved : " + Account.class.getName() + " - " + account);
     }
 
     @Override
@@ -126,6 +133,7 @@ public class AccountService implements IAccountService {
         }
 
         accountRepo.delete(account);
+        logger.info("deleted : " + Account.class.getName() + " - " + account);
     }
 
     @Override
@@ -136,5 +144,10 @@ public class AccountService implements IAccountService {
         }
 
         return accountRepo.findByName(s).orElseThrow(() -> new UsernameNotFoundException("No account found with name: " + s));
+    }
+
+    @Override
+    public boolean accountWithSecretKeyExists(String secretKey) {
+        return accountRepo.findBySecretKey(secretKey).isPresent();
     }
 }

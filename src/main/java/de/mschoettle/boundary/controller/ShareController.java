@@ -90,10 +90,11 @@ public class ShareController {
             throws FileSystemObjectDoesNotExistException {
 
         mainController.addFolderToModel(model, principal, folderId);
+        Account provider = mainController.getAuthenticatedAccount(principal);
         FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(mainController.getAuthenticatedAccount(principal), fileSystemObjectId);
 
         for(Account a : accountList) {
-            permissionService.giveAccountPermission(a, fileSystemObject);
+            permissionService.giveAccountPermission(a, provider, fileSystemObject);
         }
 
         return "main";
