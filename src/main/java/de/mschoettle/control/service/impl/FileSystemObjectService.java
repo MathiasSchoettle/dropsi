@@ -2,12 +2,14 @@ package de.mschoettle.control.service.impl;
 
 import de.mschoettle.control.exception.*;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.*;
 import de.mschoettle.entity.repository.IAccessLogEntryRepository;
 import de.mschoettle.entity.repository.IFileSystemObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,15 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.*;
-import java.sql.Array;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
-public class FileSystemService implements IFileSystemService {
+public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     private IPermissionService permissionService;
 
@@ -35,16 +33,20 @@ public class FileSystemService implements IFileSystemService {
 
     private IAccountService accountService;
 
+    private IFileService fileService;
+
     @Autowired
     public void setInjectedBean(IAccountService accountService,
                                 IAccessLogEntryRepository accessLogEntryRepository,
                                 IFileSystemObjectRepository fileSystemObjectRepository,
-                                IPermissionService permissionService) {
+                                IPermissionService permissionService,
+                                @Qualifier("local") IFileService fileService) {
 
         this.accountService = accountService;
         this.accessLogEntryRepository = accessLogEntryRepository;
         this.fileSystemObjectRepository = fileSystemObjectRepository;
         this.permissionService = permissionService;
+        this.fileService = fileService;
     }
 
     @Override
@@ -133,14 +135,14 @@ public class FileSystemService implements IFileSystemService {
         parent.addFileSystemObject(copied);
         saveFileSystemObject(parent);
 
-        Files.write(Paths.get(System.getProperty("user.dir"), "files", copied.getFileReference()), getByteArrayOfFile(account, fileId), StandardOpenOption.CREATE);
+        fileService.writeFile(fileService.getByteArrayOfFile(file), copied.getFileReference());
 
         return copied;
     }
 
     private void removePhysicalFilesOfChildren(FileSystemObject fileSystemObject) throws IOException {
         if(fileSystemObject instanceof File) {
-            Files.deleteIfExists(Paths.get(System.getProperty("user.dir"), "files", ((File) fileSystemObject).getFileReference()));
+            fileService.deleteFile((File) fileSystemObject);
         } else if(fileSystemObject instanceof Folder) {
             for(FileSystemObject f : ((Folder) fileSystemObject).getContents()) {
                 removePhysicalFilesOfChildren(f);
@@ -185,7 +187,7 @@ public class FileSystemService implements IFileSystemService {
 
         Folder parentFolder = getFolder(account, parentFolderId);
 
-        Folder folderToAdd = new Folder(childFolderName, 0, account, parentFolder);
+        Folder folderToAdd = new Folder(getAvailableName(parentFolder, childFolderName), 0, account, parentFolder);
         addAccessLogEntry(folderToAdd, AccessType.CREATED, "Created Folder \"" + childFolderName + "\"");
         saveFileSystemObject(folderToAdd);
 
@@ -219,7 +221,7 @@ public class FileSystemService implements IFileSystemService {
             name = name.substring(0, name.lastIndexOf("."));
         }
 
-        File file = new File(name, f.getSize(), account, parentFolder, extension, f.getContentType());
+        File file = new File(getAvailableName(parentFolder, name), f.getSize(), account, parentFolder, extension, f.getContentType());
         saveFileSystemObject(file);
 
         String fileRef = file.getId() + "";
@@ -231,7 +233,7 @@ public class FileSystemService implements IFileSystemService {
         addAccessLogEntry(parentFolder, AccessType.EDITED, "Uploaded new File \"" + file.getName() + "\"");
         recalculateSize(parentFolder);
 
-        Files.write(Paths.get(System.getProperty("user.dir"), "files", fileRef), f.getBytes(), StandardOpenOption.CREATE);
+        fileService.writeFile(f.getBytes(), fileRef);
     }
 
     @Override
@@ -244,7 +246,7 @@ public class FileSystemService implements IFileSystemService {
         if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
         } else {
-            return getFolderResponseEntity((Folder) fileSystemObject, account);
+            return getFolderResponseEntity((Folder) fileSystemObject);
         }
     }
 
@@ -258,13 +260,13 @@ public class FileSystemService implements IFileSystemService {
         if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
         } else {
-            return getFolderResponseEntity((Folder) fileSystemObject, account);
+            return getFolderResponseEntity((Folder) fileSystemObject);
         }
     }
 
     private ResponseEntity<ByteArrayResource> getFileResponseEntity(File file) throws IOException {
 
-        byte[] data = Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", file.getFileReference()));
+        byte[] data = fileService.getByteArrayOfFile(file);
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.toString());
         ByteArrayResource resource = new ByteArrayResource(data);
@@ -275,22 +277,9 @@ public class FileSystemService implements IFileSystemService {
                 .body(resource);
     }
 
-    private ResponseEntity<ByteArrayResource> getFolderResponseEntity(Folder folder, Account account) throws IOException {
+    private ResponseEntity<ByteArrayResource> getFolderResponseEntity(Folder folder) throws IOException {
 
-        Path path = Paths.get(System.getProperty("user.dir"), "temp", account.getId() + "" + Timestamp.valueOf(LocalDateTime.now()).getTime() + ".zip");
-
-        URI p = path.toUri();
-        URI uri = URI.create("jar:" + p);
-
-        Map<String, String> env = new HashMap<>();
-        env.put("create", "true");
-
-        try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
-            addFolder(zipfs, folder, "/");
-        }
-
-        byte[] data = Files.readAllBytes(path);
-        Files.delete(path);
+        byte[] data = fileService.getByteArrayOfFolder(folder);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + folder.getName() + ".zip");
@@ -300,25 +289,6 @@ public class FileSystemService implements IFileSystemService {
                 .contentLength(data.length)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(resource);
-    }
-
-    private void addFolder(FileSystem zipfs, Folder folder, String path) throws IOException {
-
-        Files.createDirectory(zipfs.getPath(path, folder.getName()));
-
-        for (FileSystemObject f : folder.getContents()) {
-
-            if (f instanceof Folder) {
-                addFolder(zipfs, (Folder) f, path + "/" + folder.getName());
-            } else if (f instanceof File) {
-                Files.write(zipfs.getPath(path, folder.getName(), f.toString()), Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", f.getId() + "")));
-            }
-        }
-    }
-
-    @Override
-    public byte[] getByteArrayOfFile(Account account, long fileId) throws NotAFileException, FileSystemObjectDoesNotExistException, IOException {
-        return Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", getFile(account, fileId).getFileReference()));
     }
 
     @Override
@@ -511,5 +481,26 @@ public class FileSystemService implements IFileSystemService {
 
         AccessLogEntry accessLogEntry = new AccessLogEntry(fileSystemObject, accessType, comment);
         accessLogEntryRepository.save(accessLogEntry);
+    }
+
+    @Override
+    public Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap(FileSystemObject fileSystemObject) {
+
+        Map<LocalDate, List<AccessLogEntry>> map = new TreeMap<>(Collections.reverseOrder());
+
+        for (AccessLogEntry a : fileSystemObject.getAccessLogs()) {
+
+            LocalDate ld = a.getCreationDate().toLocalDate();
+
+            if (map.containsKey(ld)) {
+                map.get(ld).add(a);
+            } else {
+                List<AccessLogEntry> list = new ArrayList<>();
+                list.add(a);
+                map.put(ld, list);
+            }
+        }
+
+        return map;
     }
 }

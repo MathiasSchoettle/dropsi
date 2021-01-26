@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.security.auth.login.CredentialException;
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 @Controller
 @Scope("session")
@@ -36,32 +38,27 @@ public class SignUpController {
     }
 
     // TODO make successful sign up automatic login
-    /**
-     * Creates a new Account with the user given information if this information is valid.
-     * If an Exception is thrown the Exception handlers in this class return the sign up view again with updated information
-     *
-     * @param account an Account Object which is just used as a container for the given inputs
-     * @param model the model to be filled for the view
-     *
-     * @return the String of the login view
-     *
-     * @throws AccountDoesNotExistsException this Exception can be left unhandled as the account always exists
-     * @throws FileSystemObjectDoesNotExistException this Exception can be left unhandled because the rootfolder of the account always exists
-     * @throws CredentialException this is thrown when the user enters invalid name, password or email inputs. i.e. when the input is empty or null
-     * @throws EmailTakenException this is thrown when an account already exists with the entered email address
-     * @throws AccountNameTakenException this is thrown when an account already exists with the entered username
-     */
     @RequestMapping(value = "/sign_up", method = RequestMethod.POST)
-    public String signUpNewAccount(@ModelAttribute Account account, Model model)
+    public String signUpNewAccount(@ModelAttribute Account account, Model model, Principal principal)
             throws AccountDoesNotExistsException,
             FileSystemObjectDoesNotExistException,
             CredentialException,
             EmailTakenException,
             AccountNameTakenException {
 
-        accountService.createNewAccount(account);
 
-        return "login";
+
+        accountService.createNewAccount(account);
+        Account a = accountService.getAccount(account.getId());
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                a,
+                null,
+                ((UserDetails) a).getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        return "main";
     }
 
     @ExceptionHandler(AccountNameTakenException.class)
@@ -78,6 +75,6 @@ public class SignUpController {
         model.addAttribute("account", new Account());
         model.addAttribute("accountNameTaken", nameTaken);
         model.addAttribute("emailTaken", emailTaken);
-        return "sign_up";
+        return "register";
     }
 }

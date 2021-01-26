@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IFileSystemService {
@@ -40,6 +43,8 @@ public interface IFileSystemService {
     void moveFileSystemObject(Account account, long folderId, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException, NotAFolderException;
 
     void addAccessLogEntry(FileSystemObject fileSystemObject, AccessType accessType, String comment) throws FileSystemObjectDoesNotExistException;
+
+    Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap(FileSystemObject fileSystemObject);
 
     FileSystemObject getFileSystemObject(Account account, long id) throws FileSystemObjectDoesNotExistException;
 
