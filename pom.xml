@@ -96,20 +96,22 @@
 
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-webmvc-core</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-security</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-data-rest</artifactId>
 			<version>1.5.2</version>
+		</dependency>
+
+		<!-- Retrogram -->
+		<dependency>
+			<groupId>com.othr.jonasrombach</groupId>
+			<artifactId>retrogram</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Hamilton Bank -->
+		<dependency>
+			<groupId>de.othr.sw</groupId>
+			<artifactId>hamilton</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>

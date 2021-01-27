@@ -1,10 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+<html xmlns:th="http://www.thymeleaf.org" lang="">
 </head>
-<body>
-$END$
-</body>
+<div th:fragment="error(number, infoText)" th:remove="tag">
+    <div class="container-fluid h-100">
+        <div class="flex-row d-flex justify-content-center h-100">
+            <div class="col-12 col-sm-8 col-xl-6 flex-column d-flex mt-auto mb-auto">
+                <div class="flex-row f-flex justify-content-center">
+
+                    <div class="p-3 bgdark r-lg bx-shdw">
+
+                        <div class="d-flex flex-column flex-lg-row justify-content-between mb-3 text-white">
+                            <div class="bgmedium r-sm col-lg-8 d-flex flex-column justify-content-center f-lg font-weight-bold pt-3 pb-3">
+                                Seems like you're lost
+                            </div>
+                            <div class="error d-flex flex-column justify-content-center mt-3 mt-lg-0
+                                    text-center pt-3 f-lg font-weight-bold pb-3 col-lg-3 r-sm"
+                                 th:text="${number}"></div>
+                        </div>
+
+                        <div class="bgmedium p-3 text-white r-sm" th:text="${infoText}"></div>
+
+                        <div class="d-flex flex-row justify-content-between mt-3">
+                            <div class="col-6 p-0 pr-2">
+                                <a th:href="@{/login}" class="btn btn-dark btn-block">Login</a>
+                            </div>
+
+                            <div class="col-6 p-0 pl-2">
+                                <a th:href="@{/home}" class="btn btn-dark btn-block">Home</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 </html>

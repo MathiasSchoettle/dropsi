@@ -7,7 +7,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Entity
+@Entity(name = "file_system_object")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ref_type")
 public abstract class FileSystemObject {
@@ -52,17 +52,8 @@ public abstract class FileSystemObject {
         return this instanceof Folder;
     }
 
-    // TODO remove or in service
-    public Optional<Permission> removePermissionByAccount(Account account) {
-
-        for (Permission p : permissions) {
-            if (p.getReceiver().equals(account)) {
-                permissions.remove(p);
-                return Optional.of(p);
-            }
-        }
-
-        return Optional.empty();
+    public void removePermission(Permission permission) {
+        permissions.remove(permission);
     }
 
     public String getPrettyFileSize() {
@@ -146,10 +137,6 @@ public abstract class FileSystemObject {
 
     public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
-    }
-
-    public void setOwner(Account owner) {
-        this.owner = owner;
     }
 
     public void setParent(Folder parent) {

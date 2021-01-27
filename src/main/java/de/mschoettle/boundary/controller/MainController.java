@@ -1,44 +1,77 @@
 package de.mschoettle.boundary.controller;
 
+import com.othr.jonasrombach.retrogram.dto.PostDto;
 import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.exception.NotAFileException;
 import de.mschoettle.control.exception.NotAFolderException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
+import de.othr.sw.hamilton.entity.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
-import java.util.Random;
 
 @Controller
-@Scope("session")
+@Scope("singleton")
 public class MainController {
 
-    @Autowired
     private IAccountService accountService;
 
+    private IFileSystemObjectService fileSystemObjectService;
+
+    private RestTemplate restTemplate;
+
+    private IFileService fileService;
+
+    private Payment payment;
+
     @Autowired
-    private IFileSystemService fileSystemService;
+    public void setInjectedBean(IAccountService accountService,
+                                IFileSystemObjectService fileSystemObjectService,
+                                RestTemplate restTemplate,
+                                @Qualifier("local") IFileService fileService,
+                                Payment payment) {
+
+        this.accountService = accountService;
+        this.fileSystemObjectService = fileSystemObjectService;
+        this.restTemplate = restTemplate;
+        this.fileService = fileService;
+        this.payment = payment;
+    }
 
     @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String showMain(Model model, Principal principal) {
         model.addAttribute("currentFolder", getRootFolderOfPrincipal(principal));
-        model.addAttribute("account", getAuthenticatedAccount(principal));
+        model.addAttribute("account", accountService.getAuthenticatedAccount(principal));
+        model.addAttribute("payment", payment);
         return "main";
+    }
+
+    @RequestMapping(value = "/payCoffee", method = RequestMethod.GET)
+    public String payCoffee() {
+        payment.setFulfilled(true);
+        return "redirect:home";
     }
 
     @RequestMapping(value = "/main", method = RequestMethod.GET)
@@ -55,17 +88,17 @@ public class MainController {
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
-        fileSystemService.addNewFolderToFolder(getAuthenticatedAccount(principal), folderId, folderName);
+        fileSystemObjectService.addNewFolderToFolder(accountService.getAuthenticatedAccount(principal), folderId, folderName);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
 
     @RequestMapping(value = "/fileSystemObject", method = RequestMethod.GET)
-    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal,
-                                                          @RequestParam("fileSystemObjectId") long fileSystemObjectId)
-            throws IOException, FileSystemObjectDoesNotExistException {
+    public ResponseEntity<ByteArrayResource> downloadFile(Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws
+            IOException,
+            FileSystemObjectDoesNotExistException {
 
-        return fileSystemService.getFileSystemObjectResponseEntity(getAuthenticatedAccount(principal), fileSystemObjectId);
+        return fileSystemObjectService.getFileSystemObjectResponseEntity(accountService.getAuthenticatedAccount(principal), fileSystemObjectId);
     }
 
     @RequestMapping(value = "/filesystemobject", method = RequestMethod.POST)
@@ -76,22 +109,22 @@ public class MainController {
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
-        fileSystemService.addMultipartFileToFolder(getAuthenticatedAccount(principal), folderId, file);
+        fileSystemObjectService.addMultipartFileToFolder(accountService.getAuthenticatedAccount(principal), folderId, file);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
 
     @RequestMapping(value = "/filesystemobject/copy", method = RequestMethod.POST)
     public String copyFileSystemObject(Model model, Principal principal,
-                             @RequestParam("fileSystemObjectId") long fileSystemObjectId,
-                             @RequestParam("parentId") long parentId) throws
+                                       @RequestParam("fileSystemObjectId") long fileSystemObjectId,
+                                       @RequestParam("parentId") long parentId) throws
             IOException,
             FileSystemObjectDoesNotExistException,
             NotAFolderException,
             NotAFileException {
 
-        Account account = getAuthenticatedAccount(principal);
-        fileSystemService.copyFileSystemObject(account, fileSystemObjectId, parentId);
+        Account account = accountService.getAuthenticatedAccount(principal);
+        fileSystemObjectService.copyFileSystemObject(account, parentId, fileSystemObjectId);
 
         addFolderToModel(model, principal, parentId);
         return "main";
@@ -105,7 +138,7 @@ public class MainController {
             IOException,
             NotAFolderException {
 
-        fileSystemService.deleteFileSystemObject(getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
+        fileSystemObjectService.deleteFileSystemObject(accountService.getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
         addFolderToModel(model, principal, folderId);
         return "main";
     }
@@ -118,41 +151,45 @@ public class MainController {
             FileSystemObjectDoesNotExistException,
             IOException {
 
-        // TODO do this all in service and build Post object of Retrogram
-        File file = fileSystemService.getFile(getAuthenticatedAccount(principal), fileId);
+        // TODO service
+        File file = fileSystemObjectService.getFile(accountService.getAuthenticatedAccount(principal), fileId);
+        Account account = accountService.getAuthenticatedAccount(principal);
 
+        PostDto post = new PostDto();
 
         String description = "posted by Dropsi";
-        byte[] data = fileSystemService.getByteArrayOfFile(getAuthenticatedAccount(principal), fileId);
+        byte[] data = fileService.getByteArrayOfFile(file);
         String fileType = file.getFileExtension();
 
-        model.addAttribute("popupString", new Random().nextBoolean() ? "❤ Posted Image to Retrogram" : "❌ Could not post Image to Retrogram");
+        post.setDescription(description);
+        post.setImageBytes(data);
+        post.setImageType(fileType);
+
+        // String retrogramUrl = "http://im-codd:8925/api/post";
+        String test = "http://localhost:8922/api/post";
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(test).queryParam("secretToken", account.getRetrogramToken());
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<PostDto> request = new HttpEntity<>(post, headers);
+        ResponseEntity<PostDto> responseEntity = restTemplate.exchange(uriComponentsBuilder.toUriString(), HttpMethod.POST, request, PostDto.class);
+
+        String popupString = responseEntity.getStatusCode().equals(HttpStatus.OK) ? "❤ Posted Image to Retrogram" : "❌ Could not post Image to Retrogram";
+        model.addAttribute("popupString", popupString);
+
         addFolderToModel(model, principal, folderId);
-        // TODO call post rest method of Retrogram
         return "main";
     }
 
-    /**
-     * Adds a folder with given folder id to the given model.
-     * If the folder does not exist or is not owned by the given principal the root folder of the principal is added.
-     *
-     * @param model     the model the folder is added to
-     * @param principal the current principal
-     * @param folderId  the folder id
-     */
     public void addFolderToModel(Model model, Principal principal, long folderId) {
-        Optional<FileSystemObject> folderOptional = fileSystemService.getFileSystemObjectById(folderId, getAuthenticatedAccount(principal));
-        // cast to folder so there are less thymeleaf errors
-        model.addAttribute("currentFolder", (Folder) folderOptional.orElseGet(() -> getRootFolderOfPrincipal(principal)));
-        model.addAttribute("account", getAuthenticatedAccount(principal));
+        Optional<FileSystemObject> folderOptional = fileSystemObjectService.getFileSystemObjectById(accountService.getAuthenticatedAccount(principal), folderId);
+        model.addAttribute("currentFolder", folderOptional.orElseGet(() -> getRootFolderOfPrincipal(principal)));
+        model.addAttribute("account", accountService.getAuthenticatedAccount(principal));
+        model.addAttribute("payment", payment);
     }
 
     private Folder getRootFolderOfPrincipal(Principal principal) {
-        return getAuthenticatedAccount(principal).getRootFolder();
-    }
-
-    public Account getAuthenticatedAccount(Principal principal) {
-        return (Account) accountService.loadUserByUsername(principal.getName());
+        return accountService.getAuthenticatedAccount(principal).getRootFolder();
     }
 
     @ModelAttribute("popupString")

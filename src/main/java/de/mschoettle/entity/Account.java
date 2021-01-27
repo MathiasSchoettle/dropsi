@@ -1,13 +1,9 @@
 package de.mschoettle.entity;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -31,7 +27,7 @@ public class Account implements UserDetails {
     private boolean isVerified;
 
     @Lob
-    private byte[] avatar;
+    private byte[] avatar = new byte[0];
 
     private String secretKey;
 
@@ -53,17 +49,6 @@ public class Account implements UserDetails {
         this.hashedPassword = hashedPassword;
     }
 
-    // TODO move to Service
-    public boolean hasPermission(FileSystemObject fileSystemObject) {
-        for (Permission p : permissions) {
-            if (p.getShared().equals(fileSystemObject)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public void addPermission(Permission permission) {
 
         if (permissions.contains(permission)) {
@@ -77,36 +62,7 @@ public class Account implements UserDetails {
         this.permissions.remove(permission);
     }
 
-    // TODO move to service or controller
-    public Map<Account, List<Permission>> getPermissionMap() {
-
-        Map<Account, List<Permission>> permissionMap = new HashMap<>();
-
-        for (Permission p : permissions) {
-            if (permissionMap.containsKey(p.getShared().getOwner())) {
-                permissionMap.get(p.getShared().getOwner()).add(p);
-            } else {
-                List<Permission> temp = new ArrayList<>();
-                temp.add(p);
-                permissionMap.put(p.getShared().getOwner(), temp);
-            }
-        }
-
-        return permissionMap;
-    }
-
-    // TODO move to service
-    public String getAvatarBytes() {
-
-        if(avatar == null) {
-            try {
-                byte[] bytes = new ClassPathResource("static/img/user.png").getInputStream().readAllBytes();
-                return Base64.getEncoder().encodeToString(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+    public String getAvatarByteEncoded() {
         return Base64.getEncoder().encodeToString(avatar);
     }
 

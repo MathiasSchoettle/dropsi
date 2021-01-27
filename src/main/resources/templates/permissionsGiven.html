@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
-    <title>Shared</title>
+    <title>Shares</title>
 </head>
 <body>
 
@@ -47,7 +47,8 @@
 
                     <div class="d-flex flex-row">
                         <div class=" d-flex flex-column justify-content-center mr-3">
-                            <form th:action="@{/permissions/given/all(fileSystemObjectId=${permission.key.id})}" th:method="DELETE">
+                            <form th:action="@{/permissions/given/all(fileSystemObjectId=${permission.key.id})}"
+                                  th:method="DELETE">
                                 <button class="btn btn-sm btn-warning font-weight-bold">
                                     Remove all
                                 </button>
@@ -69,11 +70,14 @@
                         <div th:each="receiver : ${permission.value}"
                              class="m-1 rounded-circle overflow-hidden position-relative permissionUserContainer">
 
-                                <form th:action="@{/permissions/given(accountId=${receiver.id}, fileSystemObjectId=${permission.key.id})}"
+                            <form th:action="@{/permissions/given(accountId=${receiver.id}, fileSystemObjectId=${permission.key.id})}"
                                   th:method="DELETE">
 
-                                <img class="position-absolute permissionUser permissionImage"
-                                     th:src="@{'data:image/png;base64,' + ${receiver.getAvatarBytes()}}">
+                                <img th:if="${receiver.avatar != null && receiver.avatar.length > 0}"
+                                     th:src="@{'data:image/png;base64,' + ${receiver.getAvatarByteEncoded()}}"
+                                     class="position-absolute permissionUser permissionImage">
+                                <img th:unless="${receiver.avatar != null && receiver.avatar.length > 0}" th:src="@{/img/user.png}"
+                                     class="position-absolute permissionUser permissionImage">
 
                                 <button type="submit"
                                         class="d-flex flex-row rounded-circle justify-content-center border-0 p-0 m-0 position-absolute permissionUser permissionBackdrop"

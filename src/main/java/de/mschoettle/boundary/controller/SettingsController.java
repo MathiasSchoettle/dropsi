@@ -4,6 +4,7 @@ import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,22 +19,24 @@ import java.io.IOException;
 import java.security.Principal;
 
 @Controller
-@Scope("session")
+@Scope("singleton")
 public class SettingsController {
 
-    @Autowired
     private IAccountService accountService;
 
     @Autowired
-    private MainController mainController;
+    public void setInjectedBean(IAccountService accountService) {
+        this.accountService = accountService;
+    }
 
-    @RequestMapping(value = "/settings")
+    @RequestMapping(value = "/settings", method = RequestMethod.GET)
     public String showSettings(Model model, Principal principal) {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
+        Account account = accountService.getAuthenticatedAccount(principal);
         model.addAttribute("name", account.getName());
         model.addAttribute("email", account.getEmail());
         model.addAttribute("secretKey", account.getSecretKey());
+        model.addAttribute("retrogramToken", account.getRetrogramToken() != null ? account.getRetrogramToken() : "");
 
         model.addAttribute("triedToChangeUsername", false);
         model.addAttribute("changedUsername", false);
@@ -51,7 +54,7 @@ public class SettingsController {
                                @RequestParam("avatarImage") MultipartFile[] avatarImage)
             throws IOException {
 
-        Account authenticatedAccount = mainController.getAuthenticatedAccount(principal);
+        Account authenticatedAccount = accountService.getAuthenticatedAccount(principal);
 
         boolean triedToChangeUsername = !account.getName().trim().equals("");
         boolean changedUsername = !accountService.isUsernameTaken(account.getName());
@@ -59,6 +62,9 @@ public class SettingsController {
         boolean triedToChangeEmail = !account.getEmail().trim().equals("");
         boolean changedEmail = !accountService.isEmailTaken(account.getEmail());
 
+        boolean changedRetrogramToken = account.getRetrogramToken() != null &&
+                !account.getRetrogramToken().isBlank() &&
+                (authenticatedAccount.getRetrogramToken() == null || !authenticatedAccount.getRetrogramToken().equals(account.getRetrogramToken()));
 
         if (triedToChangeUsername && changedUsername) {
             authenticatedAccount.setName(account.getName());
@@ -72,9 +78,14 @@ public class SettingsController {
             authenticatedAccount.setAvatar(avatarImage[0].getBytes());
         }
 
+        if (changedRetrogramToken) {
+            authenticatedAccount.setRetrogramToken(account.getRetrogramToken());
+        }
+
         model.addAttribute("name", authenticatedAccount.getName());
         model.addAttribute("email", authenticatedAccount.getEmail());
         model.addAttribute("secretKey", authenticatedAccount.getSecretKey());
+        model.addAttribute("retrogramToken", authenticatedAccount.getRetrogramToken() != null ? authenticatedAccount.getRetrogramToken() : "");
 
         model.addAttribute("triedToChangeUsername", triedToChangeUsername);
         model.addAttribute("changedUsername", changedUsername);
@@ -97,6 +108,6 @@ public class SettingsController {
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<Void> handleIOException() {
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }

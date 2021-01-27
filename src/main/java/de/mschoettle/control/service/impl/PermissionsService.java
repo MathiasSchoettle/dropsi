@@ -4,27 +4,42 @@ import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.exception.PermissionDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.control.service.IPermissionService;
-import de.mschoettle.entity.*;
+import de.mschoettle.entity.AccessType;
+import de.mschoettle.entity.Account;
+import de.mschoettle.entity.FileSystemObject;
+import de.mschoettle.entity.Permission;
 import de.mschoettle.entity.repository.IPermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
+@Scope("singleton")
 public class PermissionsService implements IPermissionService {
 
-    @Autowired
+    private IFileSystemObjectService fileSystemObjectService;
+
+    private IAccountService accountService;
+
     private IPermissionRepository permissionRepository;
 
     @Autowired
-    private IAccountService accountService;
+    public void setInjectedBean(IFileSystemObjectService fileSystemObjectService,
+                                IAccountService accountService,
+                                IPermissionRepository permissionRepository ) {
 
-    @Autowired
-    private IFileSystemService fileSystemService;
+        this.fileSystemObjectService = fileSystemObjectService;
+        this.accountService = accountService;
+        this.permissionRepository = permissionRepository;
+    }
 
     @Override
     public Permission getPermission(Account ownerOrReceiver, long permissionId) throws PermissionDoesNotExistException {
@@ -47,15 +62,15 @@ public class PermissionsService implements IPermissionService {
             throw new IllegalArgumentException("Account " + receiver + " owns FileSystemObject " + fileSystemObject.getId());
         }
 
-        if (receiver.hasPermission(fileSystemObject)) {
+        if (accountService.accountHasPermission(receiver, fileSystemObject)) {
             return;
         }
 
         Permission permission = new Permission(receiver, provider, fileSystemObject);
         permissionRepository.save(permission);
 
-        fileSystemService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Shared with " + receiver.getName());
-        fileSystemService.saveFileSystemObject(fileSystemObject);
+        fileSystemObjectService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Shared with " + receiver.getName());
+        fileSystemObjectService.saveFileSystemObject(fileSystemObject);
 
         receiver.addPermission(permission);
         accountService.saveAccount(receiver);
@@ -79,9 +94,9 @@ public class PermissionsService implements IPermissionService {
         }
 
         FileSystemObject fileSystemObject = permission.getShared();
-        fileSystemService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Stopped sharing with " + permission.getReceiver().getName());
-        fileSystemService.saveFileSystemObject(fileSystemObject);
-
+        fileSystemObjectService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Stopped sharing with " + permission.getReceiver().getName());
+        fileSystemObject.removePermission(permission);
+        fileSystemObjectService.saveFileSystemObject(fileSystemObject);
         permissionRepository.delete(permission);
     }
 
@@ -111,23 +126,41 @@ public class PermissionsService implements IPermissionService {
     @Override
     @Transactional
     public void deletePermissionOfAccount(Account owner, long receiverId, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException, AccountDoesNotExistsException {
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(owner, fileSystemObjectId);
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(owner, fileSystemObjectId);
         Account receiver = accountService.getAccount(receiverId);
-        Optional<Permission> permissionOptional = fileSystemObject.removePermissionByAccount(receiver);
 
-        if(permissionOptional.isPresent()) {
-            fileSystemService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_REVOKED, "Stopped sharing with " + permissionOptional.get().getReceiver().getName());
-            permissionRepository.delete(permissionOptional.get());
+        for (Permission p : fileSystemObject.getPermissions()) {
+            if (p.getReceiver().equals(receiver)) {
+                deletePermission(p);
+                break;
+            }
         }
     }
 
     @Override
     @Transactional
     public void deletePermissionsOfFileSystemObject(Account account, long fileSystemObjectId) throws FileSystemObjectDoesNotExistException {
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
-        fileSystemService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Stopped sharing with all users");
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(account, fileSystemObjectId);
+        fileSystemObjectService.addAccessLogEntry(fileSystemObject, AccessType.PERMISSIONS_GIVEN, "Stopped sharing with all users");
         permissionRepository.deleteAllByShared(fileSystemObject);
-        fileSystemObject.setPermissions(new ArrayList<>());
-        fileSystemService.saveFileSystemObject(fileSystemObject);
+        fileSystemObjectService.saveFileSystemObject(fileSystemObject);
+    }
+
+    @Override
+    public Map<Account, List<Permission>> getPermissionMap(Account account) {
+
+        Map<Account, List<Permission>> permissionMap = new HashMap<>();
+
+        for (Permission p : account.getPermissions()) {
+            if (permissionMap.containsKey(p.getShared().getOwner())) {
+                permissionMap.get(p.getShared().getOwner()).add(p);
+            } else {
+                List<Permission> temp = new ArrayList<>();
+                temp.add(p);
+                permissionMap.put(p.getShared().getOwner(), temp);
+            }
+        }
+
+        return permissionMap;
     }
 }

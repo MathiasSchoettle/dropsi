@@ -1,10 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>😥 404</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
-$END$
+<div th:replace="fragments/errorTemplate :: error(404, 'The resource you are trying to access can not be found')"></div>
 </body>
 </html>

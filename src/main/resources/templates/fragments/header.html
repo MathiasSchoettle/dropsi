@@ -1,16 +1,41 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="">
 <div th:fragment="header(account)" th:remove="tag">
     <div class="row bgdarker main-header">
+
         <div class="col-6 col-md-3 col-lg-2 d-flex h-100 p-0">
             <a th:href="@{/home}" class="flex-row d-flex">
                 <img th:src="@{/img/logo.png}" class="img-fluid mh-100 m-md-auto pt-1 pb-1 pl-1" alt="logo"/>
             </a>
         </div>
 
-        <div class="col-6 col-md-9 col-lg-10 d-flex flex-row justify-content-end p-0">
+        <div class="col-6 col-md-9 col-lg-10 d-flex flex-row justify-content-end justify-content-md-between p-0">
+
+            <div class="flex-column d-flex justify-content-center ml-md-4 mr-4">
+                <div th:if="${payment.paymentUrl != null}">
+                    <div th:if="${payment.isFulfilled}" class="btn btn-sm btn-light d-flex pt-1 pb-1">
+                        <div>Thank you ❤</div>
+                    </div>
+
+                    <a th:unless="${payment.isFulfilled}" th:href="@{/payCoffee}" onclick="show()" class="btn btn-sm btn-light d-flex pt-1 pb-1">
+                        <div class="d-none d-md-block">Buy me a coffee</div>
+                        <i class="material-icons ml-md-2">local_cafe</i>
+                    </a>
+                </div>
+            </div>
+
+            <script th:inline="javascript">
+                function show() {
+                    window.open([[${payment.paymentUrl}]] + '');
+                }
+            </script>
+
             <div class="flex-column d-flex justify-content-center mr-4">
                 <a th:href="@{/settings}" class="text-white">
-                    <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}" class="rounded-circle bx-shdw" style="height: 2.8em; width: 2.8em;">
+                    <img th:if="${account.avatar != null && account.avatar.length > 0}"
+                         th:src="@{'data:image/png;base64,' + ${account.getAvatarByteEncoded()}}"
+                         class="rounded-circle bx-shdw" style="height: 2.8em; width: 2.8em;" alt="avatar">
+                    <img th:unless="${account.avatar != null && account.avatar.length > 0}" th:src="@{/img/user.png}"
+                         class="rounded-circle bx-shdw" style="height: 2.8em; width: 2.8em;" alt="avatar">
                 </a>
             </div>
         </div>

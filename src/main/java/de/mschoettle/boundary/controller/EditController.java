@@ -1,10 +1,9 @@
 package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
-import de.mschoettle.control.service.IFileSystemService;
-import de.mschoettle.entity.AccessLogEntry;
+import de.mschoettle.control.service.IAccountService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.entity.Account;
-import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -12,72 +11,58 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.security.Principal;
-import java.time.LocalDate;
-import java.util.*;
 
 @Controller
-@Scope("session")
+@Scope("singleton")
 public class EditController {
 
-    @Autowired
-    private IFileSystemService fileSystemService;
+    private IFileSystemObjectService fileSystemObjectService;
+
+    private IAccountService accountService;
 
     @Autowired
-    private MainController mainController;
+    public void setInjectedBean(IFileSystemObjectService fileSystemObjectService,
+                                IAccountService accountService) {
 
-    @RequestMapping(value = {"/editInfo"}, method = RequestMethod.GET)
+        this.fileSystemObjectService = fileSystemObjectService;
+        this.accountService = accountService;
+    }
+
+    @RequestMapping(value = {"/info"}, method = RequestMethod.GET)
     public String showInformation(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws
             FileSystemObjectDoesNotExistException {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
+        Account account = accountService.getAuthenticatedAccount(principal);
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(account, fileSystemObjectId);
 
-        model.addAttribute("accessLogMap", getAccessLogEntriesMap(fileSystemObject));
+        model.addAttribute("accessLogMap", fileSystemObjectService.getAccessLogEntriesMap(fileSystemObject));
         model.addAttribute("fileSystemObject", fileSystemObject);
 
-        return "editInfo";
+        return "info";
     }
 
-    @RequestMapping(value = {"/editInfo"}, method = RequestMethod.PUT)
+    @RequestMapping(value = {"/info"}, method = RequestMethod.PUT)
+    @Transactional
     public String changeFileSystemObjectName(Model model, Principal principal,
                                    @RequestParam("fileSystemObjectId") long fileSystemObjectId,
                                    @ModelAttribute("fileSystemObjectName") String fileSystemObjectName) throws
             FileSystemObjectDoesNotExistException {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
+        Account account = accountService.getAuthenticatedAccount(principal);
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(account, fileSystemObjectId);
 
-        fileSystemService.changeNameOfFileSystemObject(fileSystemObjectId, account, fileSystemObjectName);
+        fileSystemObjectService.changeNameOfFileSystemObject(account, fileSystemObjectId, fileSystemObjectName);
 
         model.addAttribute("fileSystemObject", fileSystemObject);
-        model.addAttribute("accessLogMap", getAccessLogEntriesMap(fileSystemObject));
+        model.addAttribute("accessLogMap", fileSystemObjectService.getAccessLogEntriesMap(fileSystemObject));
 
-        return "editInfo";
-    }
-
-    private Map<LocalDate, List<AccessLogEntry>> getAccessLogEntriesMap(FileSystemObject fileSystemObject) {
-
-        Map<LocalDate, List<AccessLogEntry>> map = new TreeMap<>(Collections.reverseOrder());
-
-        for (AccessLogEntry a : fileSystemObject.getAccessLogs()) {
-
-            LocalDate ld = a.getCreationDate().toLocalDate();
-
-            if (map.containsKey(ld)) {
-                map.get(ld).add(a);
-            } else {
-                List<AccessLogEntry> list = new ArrayList<>();
-                list.add(a);
-                map.put(ld, list);
-            }
-        }
-
-        return map;
+        return "info";
     }
 
     @ExceptionHandler(FileSystemObjectDoesNotExistException.class)
-    public String handleFileSystemObjectDoesNotExistException(Model model, Principal principal) {
-        return mainController.showMain(model, principal);
+    public String handleFileSystemObjectDoesNotExistException() {
+        return "redirect:/home";
     }
 }

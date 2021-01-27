@@ -10,6 +10,7 @@ import de.mschoettle.entity.repository.IAccessLogEntryRepository;
 import de.mschoettle.entity.repository.IFileSystemObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,7 +24,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
-public class FileSystemObjectObjectService implements IFileSystemObjectService {
+@Scope("singleton")
+public class FileSystemObjectService implements IFileSystemObjectService {
 
     private IPermissionService permissionService;
 
@@ -71,13 +73,14 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     @Override
     @Transactional
-    public void copyFileSystemObject(Account account, long fileSystemObjectId, long parentId) throws
+    public void copyFileSystemObject(Account account, long parentFolderId, long fileSystemObjectId) throws
             FileSystemObjectDoesNotExistException,
             NotAFileException,
             IOException,
             NotAFolderException {
 
-        cloneFileSystemObject(account, fileSystemObjectId, parentId);
+        // extra method so we can have return type void
+        cloneFileSystemObject(account, fileSystemObjectId, parentFolderId);
     }
 
     @Transactional
@@ -89,7 +92,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
 
-        if(fileSystemObject instanceof Folder) {
+        if (fileSystemObject instanceof Folder) {
             return cloneFolder(account, fileSystemObjectId, parentId);
         } else {
             return cloneFile(account, fileSystemObjectId, parentId);
@@ -112,7 +115,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
         parent.addFileSystemObject(copied);
         saveFileSystemObject(parent);
 
-        for(FileSystemObject f : folder.getContents()) {
+        for (FileSystemObject f : folder.getContents()) {
             copied.addFileSystemObject(cloneFileSystemObject(account, f.getId(), copied.getId()));
         }
 
@@ -140,11 +143,18 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
         return copied;
     }
 
+    /**
+     * This deletes the children {@link FileSystemObject}s on the fileSystem
+     *
+     * See @PreRemove in {@link File}
+     *
+     * @throws IOException if a problem occurred while deleting
+     */
     private void removePhysicalFilesOfChildren(FileSystemObject fileSystemObject) throws IOException {
-        if(fileSystemObject instanceof File) {
+        if (fileSystemObject instanceof File) {
             fileService.deleteFile((File) fileSystemObject);
-        } else if(fileSystemObject instanceof Folder) {
-            for(FileSystemObject f : ((Folder) fileSystemObject).getContents()) {
+        } else if (fileSystemObject instanceof Folder) {
+            for (FileSystemObject f : ((Folder) fileSystemObject).getContents()) {
                 removePhysicalFilesOfChildren(f);
             }
         }
@@ -152,7 +162,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     @Override
     @Transactional
-    public void giveAccountRootFolder(Account account) throws AccountDoesNotExistsException, FileSystemObjectDoesNotExistException {
+    public void giveAccountRootFolder(Account account) throws AccountDoesNotExistsException {
 
         if (account == null) {
             throw new AccountDoesNotExistsException();
@@ -163,7 +173,6 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
         }
 
         Folder rootFolder = new Folder("root", 0, account, null);
-        addAccessLogEntry(rootFolder, AccessType.CREATED, "created Folder \"" + rootFolder.getName() + "\"");
         saveFileSystemObject(rootFolder);
 
         account.setRootFolder(rootFolder);
@@ -198,30 +207,30 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     @Override
     @Transactional
-    public void addMultipartFileToFolder(Account account, long parentFolderId, MultipartFile f) throws
+    public void addMultipartFileToFolder(Account account, long parentFolderId, MultipartFile multipartFile) throws
             IOException,
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
         Folder parentFolder = getFolder(account, parentFolderId);
 
-        if (f == null || f.getSize() < 0) {
+        if (multipartFile == null || multipartFile.getSize() < 0) {
             throw new IllegalArgumentException("MultiPartFile was null or empty");
         }
 
-        if (f.getOriginalFilename() == null || f.getOriginalFilename().trim().isEmpty()) {
+        if (multipartFile.getOriginalFilename() == null || multipartFile.getOriginalFilename().trim().isEmpty()) {
             throw new IllegalArgumentException("MultiPartFiles name was null or empty");
         }
 
         // remove file extension
-        String name = f.getOriginalFilename();
+        String name = multipartFile.getOriginalFilename();
         String extension = "";
-        if (name.indexOf(".") > 0) {
+        if (name.lastIndexOf(".") > 0) {
             extension = name.substring(name.lastIndexOf(".") + 1);
             name = name.substring(0, name.lastIndexOf("."));
         }
 
-        File file = new File(getAvailableName(parentFolder, name), f.getSize(), account, parentFolder, extension, f.getContentType());
+        File file = new File(getAvailableName(parentFolder, name), multipartFile.getSize(), account, parentFolder, extension, multipartFile.getContentType());
         saveFileSystemObject(file);
 
         String fileRef = file.getId() + "";
@@ -233,7 +242,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
         addAccessLogEntry(parentFolder, AccessType.EDITED, "Uploaded new File \"" + file.getName() + "\"");
         recalculateSize(parentFolder);
 
-        fileService.writeFile(f.getBytes(), fileRef);
+        fileService.writeFile(multipartFile.getBytes(), fileRef);
     }
 
     @Override
@@ -241,7 +250,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
     public ResponseEntity<ByteArrayResource> getFileSystemObjectResponseEntity(Account account, long fileSystemObjectId) throws IOException, FileSystemObjectDoesNotExistException {
 
         FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);
-        addAccessLogEntry(fileSystemObject, AccessType.DOWNLAODED, "Downloaded by Account \"" + account.getName() + "\"");
+        addAccessLogEntry(fileSystemObject, AccessType.DOWNLOADED, "Downloaded by Account \"" + account.getName() + "\"");
 
         if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
@@ -255,7 +264,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
         Permission permission = permissionService.getPermission(account, permissionId);
         FileSystemObject fileSystemObject = permission.getShared();
-        addAccessLogEntry(fileSystemObject, AccessType.DOWNLAODED, "Downloaded by Account \"" + account.getName() + "\"");
+        addAccessLogEntry(fileSystemObject, AccessType.DOWNLOADED, "Downloaded by Account \"" + account.getName() + "\"");
 
         if (fileSystemObject instanceof File) {
             return getFileResponseEntity((File) fileSystemObject);
@@ -399,8 +408,8 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     @Override
     @Transactional
-    public Optional<FileSystemObject> getFileSystemObjectById(long id, Account account) {
-        return fileSystemObjectRepository.findByIdAndOwner(id, account);
+    public Optional<FileSystemObject> getFileSystemObjectById(Account account, long fileSystemObjectId) {
+        return fileSystemObjectRepository.findByIdAndOwner(fileSystemObjectId, account);
     }
 
     @Override
@@ -424,15 +433,15 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
     @Override
     public String getAvailableName(Folder folder, String name) {
 
-        if(folder == null || name == null || name.trim().isEmpty()) {
+        if (folder == null || name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("folder or name was not valid");
         }
 
         name = name.trim();
 
-        for(FileSystemObject f : folder.getContents()) {
-            if(f.getName().equals(name)) {
-                if(name.matches(".*\\([0-9]*\\)$")) {
+        for (FileSystemObject f : folder.getContents()) {
+            if (f.getName().equals(name)) {
+                if (name.matches(".*\\([0-9]*\\)$")) {
                     int number = Integer.parseInt(name.charAt(name.length() - 2) + "");
                     return getAvailableName(folder, name.substring(0, name.length() - 3) + " (" + (number + 1) + ")");
                 } else {
@@ -446,7 +455,7 @@ public class FileSystemObjectObjectService implements IFileSystemObjectService {
 
     @Override
     @Transactional
-    public void changeNameOfFileSystemObject(long fileSystemObjectId, Account account, String name) throws FileSystemObjectDoesNotExistException {
+    public void changeNameOfFileSystemObject(Account account, long fileSystemObjectId, String name) throws FileSystemObjectDoesNotExistException {
 
         if (name != null && !name.trim().isEmpty()) {
             FileSystemObject fileSystemObject = getFileSystemObject(account, fileSystemObjectId);

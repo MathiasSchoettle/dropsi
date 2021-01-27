@@ -7,6 +7,8 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface IFileSystemObjectRepository extends CrudRepository<FileSystemObject, Long> {
+
     Optional<FileSystemObject> findByIdAndOwner(long id, Account owner);
+
     void delete(FileSystemObject fileSystemObject);
 }

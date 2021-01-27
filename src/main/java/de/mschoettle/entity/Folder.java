@@ -21,15 +21,16 @@ public class Folder extends FileSystemObject {
         this.contents = new ArrayList<>();
     }
 
-    public Folder() {}
+    public Folder() {
+    }
 
     public void addFileSystemObject(FileSystemObject fileSystemObject) {
         this.contents.add(fileSystemObject);
     }
 
     public String removeFileSystemObject(long fileSystemObjectId) {
-        for(FileSystemObject f : contents) {
-            if(f.getId() == fileSystemObjectId) {
+        for (FileSystemObject f : contents) {
+            if (f.getId() == fileSystemObjectId) {
                 contents.remove(f);
                 return f.getName();
             }
@@ -42,8 +43,8 @@ public class Folder extends FileSystemObject {
     public String toString() {
         StringBuilder sb = new StringBuilder(getName() + ": " + getId());
 
-        if(contents != null && !contents.isEmpty()) {
-            for(FileSystemObject f : contents) {
+        if (contents != null && !contents.isEmpty()) {
+            for (FileSystemObject f : contents) {
                 sb.append(f);
             }
         }

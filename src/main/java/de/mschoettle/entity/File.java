@@ -16,9 +16,10 @@ public class File extends FileSystemObject {
 
     private String fileReference;
 
-    public File(){}
+    public File() {
+    }
 
-    public File(String name, long fileSize, Account owner, Folder parent, String fileExtension, String fileType){
+    public File(String name, long fileSize, Account owner, Folder parent, String fileExtension, String fileType) {
         super(name, fileSize, owner, parent);
         this.fileExtension = fileExtension;
         this.fileType = fileType;

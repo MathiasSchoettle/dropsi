@@ -1,18 +1,4 @@
 
 TODO dropsi:
 
-- a lot more fragments
-
 - add Transactional methods where needed even if its the same as default
-- make AccessLogEntries texts constants somewhere
-
-- when a new folder is built check if a folder with same name exists and if yes rename to name(x)
-- when a file with same name is uploaded rename to name(x)
-
-- back on settings page always goes back to main. make it go back to the page you came from
-
-- make scrollbars own stylesheet and add as needed
-- rename main to something more telling
-- make modals in main a fragment
-- rename editInfo to just info
-- refactor sign up to register

@@ -1,10 +1,7 @@
 package de.mschoettle.boundary.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("account")
     private UserDetailsService accountService;
 
     @Autowired
@@ -28,13 +24,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final String[] ALLOW_ACCESS_WITHOUT_AUTHENTICATION = {"/",
             "/api/**",
-
-            "/api-docs",
-            "/swagger-ui.html",
-            "/swagger-ui/**",
-
             "/login",
-            "/sign_up",
+            "/register",
             "/css/**",
             "/img/**",
             "/js/**",
@@ -42,20 +33,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
+        http.authorizeRequests()
                 .antMatchers(ALLOW_ACCESS_WITHOUT_AUTHENTICATION)
                 .permitAll().anyRequest().authenticated();
-        http
-                .formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/home").failureUrl("/loginFailed")
+        http.formLogin().loginPage("/login").permitAll().defaultSuccessUrl("/home").failureUrl("/loginFailed")
                 .and()
                 .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login")
-                .deleteCookies("remember-me").permitAll()
+                .deleteCookies("remember-me-dropsi").permitAll()
                 .and().rememberMe();
 
-        // TODO how to achieve this differently
-        // needed so POST requests are possible
-        http.csrf().disable();
+        http.csrf().ignoringAntMatchers("/api/**");
     }
 
     @Autowired

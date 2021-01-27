@@ -3,50 +3,59 @@ package de.mschoettle.control.service.impl;
 import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.AccountNameTakenException;
 import de.mschoettle.control.exception.EmailTakenException;
-import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.entity.Account;
+import de.mschoettle.entity.FileSystemObject;
+import de.mschoettle.entity.Permission;
 import de.mschoettle.entity.repository.IAccountRepository;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.CredentialException;
+import javax.transaction.Transactional;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-@Qualifier("account")
+@Scope("singleton")
 public class AccountService implements IAccountService {
 
-    @Autowired
-    private IFileSystemService fileSystemService;
+    private IFileSystemObjectService fileSystemService;
 
-    @Autowired
     private IAccountRepository accountRepo;
 
-    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    @Qualifier("service")
     private Logger logger;
 
+    @Autowired
+    public void setInjectedBean(IFileSystemObjectService fileSystemObjectService,
+                           IAccountRepository accountRepository,
+                           BCryptPasswordEncoder passwordEncoder,
+                           Logger logger) {
+
+        this.fileSystemService = fileSystemObjectService;
+        this.accountRepo = accountRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.logger = logger;
+    }
+
     @Override
+    @Transactional
     public void createNewAccount(Account account) throws
             AccountDoesNotExistsException,
-            FileSystemObjectDoesNotExistException,
             CredentialException,
             AccountNameTakenException,
             EmailTakenException {
 
-        if(account.getName() == null ||
+        if (account.getName() == null ||
                 account.getName().trim().isEmpty() ||
                 account.getEmail() == null ||
                 account.getEmail().trim().isEmpty() ||
@@ -59,11 +68,11 @@ public class AccountService implements IAccountService {
         }
 
 
-        if(isUsernameTaken(account.getName())) {
+        if (isUsernameTaken(account.getName())) {
             throw new AccountNameTakenException(account.getName());
         }
 
-        if(isEmailTaken(account.getEmail())) {
+        if (isEmailTaken(account.getEmail())) {
             throw new EmailTakenException(account.getEmail());
         }
 
@@ -115,9 +124,10 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    @Transactional
     public void saveAccount(Account account) {
 
-        if(account == null) {
+        if (account == null) {
             throw new IllegalArgumentException("Account can not be null");
         }
 
@@ -126,9 +136,10 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    @Transactional
     public void deleteAccount(Account account) {
 
-        if(account == null) {
+        if (account == null) {
             throw new IllegalArgumentException("Account can not be null");
         }
 
@@ -137,9 +148,20 @@ public class AccountService implements IAccountService {
     }
 
     @Override
+    public boolean accountHasPermission(Account account, FileSystemObject fileSystemObject) {
+        for (Permission p : account.getPermissions()) {
+            if (p.getShared().equals(fileSystemObject)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public Account loadUserByUsername(String s) throws UsernameNotFoundException {
 
-        if(s == null) {
+        if (s == null) {
             throw new IllegalArgumentException("Name can not be null");
         }
 
@@ -147,7 +169,7 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public boolean accountWithSecretKeyExists(String secretKey) {
-        return accountRepo.findBySecretKey(secretKey).isPresent();
+    public Account getAuthenticatedAccount(Principal principal) {
+        return loadUserByUsername(principal.getName());
     }
 }

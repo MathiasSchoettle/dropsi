@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
-    <title>Move</title>
+    <title th:text="${'Move ' + fileSystemObject.name}"></title>
 </head>
 <body>
 <div class="container-fluid h-100">

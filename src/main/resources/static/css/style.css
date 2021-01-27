@@ -46,6 +46,10 @@ body {
 }
 
 /* font sizes */
+.f-xxl {
+    font-size: 5em !important;
+}
+
 .f-xl {
     font-size: 2.5em !important;
 }
@@ -202,5 +206,25 @@ body {
 
     .share-body {
         height: 300px !important;
+    }
+}
+
+/* pulsating error text */
+.error {
+    background-color: #222;
+    animation-name: color;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes color {
+    0% {
+        background-color: #de7427;
+    }
+    50% {
+        background-color: #d98e1e;
+    }
+    100% {
+        background-color: #de7427;
     }
 }

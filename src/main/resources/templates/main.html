@@ -19,7 +19,7 @@
     <!-- header -->
     <div th:replace="fragments/header :: header(${account})"></div>
 
-    <div class="row flex-column flex-md-row main-body">
+    <div class="row flex-column flex-md-row main-body flex-shrink-1">
 
         <!-- nav bar -->
         <div class="col-md-3 col-lg-2 bgdarker flex-shrink-1">
@@ -136,7 +136,7 @@
                             </a>
                             <div class="dropdown-menu mr-0 bgdarker bx-shdw">
 
-                                <a th:href="@{/editInfo(fileSystemObjectId=${filesystemobject.id})}"
+                                <a th:href="@{/info(fileSystemObjectId=${filesystemobject.id})}"
                                    class="dropdown-item text-white bgdarkhov">
                                     Info
                                 </a>
@@ -251,7 +251,6 @@
         </div>
 
     </div>
-</div>
 </div>
 
 </body>

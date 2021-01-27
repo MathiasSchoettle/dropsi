@@ -5,6 +5,7 @@ import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,13 +16,13 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@Qualifier("server")
-public class ServerFileService implements IFileService {
+@Qualifier("local")
+@Scope("singleton")
+public class LocalFileService implements IFileService {
 
-    @Override
-    public void writeFile(File file) throws IOException {
-        writeFile(getByteArrayOfFile(file), file.getFileReference());
-    }
+    private static final Map<String, String> env = new HashMap<>() {{
+        put("create", "true");
+    }};
 
     @Override
     public void writeFile(byte[] data, String fileRef) throws IOException {
@@ -38,6 +39,10 @@ public class ServerFileService implements IFileService {
         return Files.readAllBytes(Paths.get(System.getProperty("user.dir"), "files", file.getFileReference()));
     }
 
+    /**
+     * As we don't save the real hierarchy of the filesystem and only store the files on the filesystem the folder hierarchy has to be built before we generate the .zip file.
+     * We generate a zip archive into which we add the folders and files, get the byte array of the .zip file and finally delete the directory in the end.
+     */
     @Override
     public byte[] getByteArrayOfFolder(Folder folder) throws IOException {
 
@@ -45,9 +50,6 @@ public class ServerFileService implements IFileService {
 
         URI p = path.toUri();
         URI uri = URI.create("jar:" + p);
-
-        Map<String, String> env = new HashMap<>();
-        env.put("create", "true");
 
         try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
             addFolder(zipfs, folder, "/");
@@ -59,6 +61,9 @@ public class ServerFileService implements IFileService {
         return data;
     }
 
+    /**
+     * This recursive function builds the hierarchy
+     */
     private void addFolder(FileSystem fs, Folder folder, String path) throws IOException {
 
         Files.createDirectory(fs.getPath(path, folder.getName()));

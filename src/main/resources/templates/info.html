@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
-    <title>Move</title>
+    <title th:text="${'ℹ - ' + fileSystemObject.name}"></title>
 </head>
 <body>
 <div class="container-fluid h-100">
@@ -24,7 +24,7 @@
 
                 <div class="row">
                     <div class="col-lg-6">
-                        <form th:action="@{/editInfo(fileSystemObjectId=${fileSystemObject.id})}" class="text-white" th:method="PUT">
+                        <form th:action="@{/info(fileSystemObjectId=${fileSystemObject.id})}" class="text-white" th:method="PUT">
 
                             <p class="h5 ml-2" th:text="${'Edit ' + (fileSystemObject.isFolder() ? 'Folder' : 'File') + ' name'}"></p>
 

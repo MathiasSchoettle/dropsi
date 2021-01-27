@@ -33,8 +33,6 @@
                             </a>
                         </div>
 
-                        <hr/>
-
                         <p class="h5 ml-2">Change Account-Info</p>
 
                         <div class="form-group p-2 bgdarker r-md">
@@ -71,16 +69,38 @@
 
                         <div class="form-group  p-2 bgdarker r-md">
                             <label class="m-0 ml-1 mb-1 h6" for="avatarInput">Choose an Avatar</label>
-                            <input type="file" th:name="avatarImage" class="form-control-file" id="avatarInput"
-                                   accept="image/x-png,image/gif,image/jpeg">
+                            <input type="file" th:name="avatarImage" class="form-control-file bg-white text-dark overflow-hidden r-sm" id="avatarInput"
+                                   accept="image/x-png,image/jpeg">
                         </div>
 
                         <div class="form-group p-2 bgdarker r-md">
-                            <label class="m-0 ml-1 mb-1 h6" for="passwordInput">Password</label>
-                            <input class="form-control input-text" readonly onfocus="this.removeAttribute('readonly');"
-                                   type="password" placeholder="To be implemented" disabled th:field="*{password}"
-                                   id="passwordInput">
+                            <label class="m-0 ml-1 mb-1 h6" for="retrogramInput">Retrogram Token</label>
+                            <input type="text" class="form-control input-text" id="retrogramInput"
+                                   th:placeholder="${retrogramToken}" th:field="*{retrogramToken}">
                         </div>
+
+                        <button type="button" onclick="copy()" class="btn btn-warning btn-sm btn-block mb-3">Copy your secret
+                            Key
+                        </button>
+
+                        <!-- script to copy secretKey into clipboard -->
+                        <script th:inline="javascript">
+                            let text = [[${secretKey}]];
+
+                            function copy() {
+                                let textarea = document.createElement("textarea");
+                                textarea.value = text;
+                                document.body.appendChild(textarea);
+                                textarea.select();
+                                document.execCommand("copy");
+                                document.body.removeChild(textarea);
+                                showToast();
+                            }
+
+                            function showToast() {
+                                $('.toast').toast('show');
+                            }
+                        </script>
 
                         <div class="row">
                             <div class="col-6 p-0 d-flex flex-column justify-content-center">
@@ -119,39 +139,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <hr/>
-
-                        <p class="h5 ml-2">Retrogram</p>
-
-                        <div class="form-group p-2 bgdarker r-md">
-                            <label class="m-0 ml-1 mb-1 h6" for="retrogramInput">Token</label>
-                            <input type="text" class="form-control input-text" id="retrogramInput"
-                                   placeholder="To be implemented" disabled th:field="*{secretKey}">
-                        </div>
-
-                        <button type="button" onclick="copy()" class="btn btn-warning btn-sm btn-block">Copy your secret
-                            Key
-                        </button>
-
-                        <!-- script to copy secretKey into clipboard -->
-                        <script th:inline="javascript">
-                            let text = [[${secretKey}]];
-
-                            function copy() {
-                                let textarea = document.createElement("textarea");
-                                textarea.value = text;
-                                document.body.appendChild(textarea);
-                                textarea.select();
-                                document.execCommand("copy");
-                                document.body.removeChild(textarea);
-                                showToast();
-                            }
-
-                            function showToast() {
-                                $('.toast').toast('show');
-                            }
-                        </script>
 
                         <hr/>
 

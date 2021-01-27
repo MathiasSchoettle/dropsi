@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -17,8 +16,6 @@ public class Permission {
 
     private LocalDateTime creationDate;
 
-    private LocalDateTime expirationDate;
-
     @ManyToOne
     private Account receiver;
 
@@ -28,7 +25,8 @@ public class Permission {
     @ManyToOne
     private FileSystemObject shared;
 
-    public Permission() {}
+    public Permission() {
+    }
 
     public Permission(Account receiver, Account provider, FileSystemObject shared) {
         this.receiver = receiver;
@@ -58,10 +56,6 @@ public class Permission {
         return creationDate;
     }
 
-    public LocalDateTime getExpirationDate() {
-        return expirationDate;
-    }
-
     public Account getReceiver() {
         return receiver;
     }
@@ -72,10 +66,6 @@ public class Permission {
 
     public FileSystemObject getShared() {
         return shared;
-    }
-
-    public void setExpirationDate(LocalDateTime expirationDate) {
-        this.expirationDate = expirationDate;
     }
 
     public void setReceiver(Account receiver) {

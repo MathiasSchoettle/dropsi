@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @JsonSubTypes({
         @JsonSubTypes.Type(value= FolderDTO.class, name = "folder"),
         @JsonSubTypes.Type(value= FileDTO.class, name = "file")})
-
 public abstract class FileSystemObjectDTO {
 
     private long id = 0;

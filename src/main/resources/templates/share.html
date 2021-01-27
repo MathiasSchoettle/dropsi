@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
-    <title>Login to Dropsi</title>
+    <title th:text="${'Share ' + fileSystemObject.name}"></title>
 </head>
 <body>
 <div class="container-fluid h-100">
@@ -30,7 +30,8 @@
                             <div class="bgmedium r-md mb-2" style="height: 80px">
                                 <div class="form-group p-2">
                                     <label class="m-0 ml-1 mb-1 h6" for="inputUsername">Username</label>
-                                    <input type="text" class="form-control input-text" id="inputUsername" required autocomplete="off" name="username">
+                                    <input type="text" class="form-control input-text" id="inputUsername" required
+                                           autocomplete="off" name="username">
                                 </div>
                             </div>
 
@@ -42,11 +43,19 @@
 
                                         <div class="d-flex flex-row justify-content-center">
                                             <div class="d-flex flex-column justify-content-center">
-                                                <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}"
-                                                     class="rounded-circle shadow-lg" style="height: 1.6em; width: 1.6em;">
+
+                                                <img th:if="${account.avatar != null && account.avatar.length > 0}"
+                                                     th:src="@{'data:image/png;base64,' + ${account.getAvatarByteEncoded()}}"
+                                                     class="rounded-circle shadow-lg"
+                                                     style="height: 1.6em; width: 1.6em;">
+                                                <img th:unless="${account.avatar != null && account.avatar.length > 0}"
+                                                     th:src="@{/img/user.png}"
+                                                     class="rounded-circle shadow-lg"
+                                                     style="height: 1.6em; width: 1.6em;">
                                             </div>
                                             <!-- span here is important so filter javascript works -->
-                                            <span class="d-flex flex-column justify-content-center ml-3 f-sm" th:text="${account.name}"></span>
+                                            <span class="d-flex flex-column justify-content-center ml-3 f-sm"
+                                                  th:text="${account.name}"></span>
                                         </div>
 
                                         <div class="d-flex flex-column justify-content-center">
@@ -79,26 +88,30 @@
                                     });
                                 </script>
                             </div>
-
                         </div>
 
                         <div class="col-md-6 d-flex flex-column p-0 pl-md-2 mb-2 share-body">
-
                             <div class="col bgmedium r-md p-2">
                                 <ul class="list-group r-md" th:each="account : ${accountList}">
-
                                     <li class="row flex-row justify-content-between bgdarker p-1 pl-2 r-sm m-0 mb-1"
                                         style="font-size: 1.1em;">
 
                                         <div class="d-flex flex-row justify-content-center">
                                             <div class="d-flex flex-column justify-content-center">
-                                                <img th:src="@{'data:image/png;base64,' + ${account.getAvatarBytes()}}"
-                                                     class="rounded-circle shadow-lg" style="height: 1.6em; width: 1.6em;">
+
+                                                <img th:if="${account.avatar != null && account.avatar.length > 0}"
+                                                     th:src="@{'data:image/png;base64,' + ${account.getAvatarByteEncoded()}}"
+                                                     class="rounded-circle shadow-lg"
+                                                     style="height: 1.6em; width: 1.6em;">
+                                                <img th:unless="${account.avatar != null && account.avatar.length > 0}"
+                                                     th:src="@{/img/user.png}"
+                                                     class="rounded-circle shadow-lg"
+                                                     style="height: 1.6em; width: 1.6em;">
                                             </div>
                                             <!-- span here is important so filter javascript works -->
-                                            <span class="d-flex flex-column justify-content-center ml-2 ml-3 f-sm" th:text="${account.name}"></span>
+                                            <span class="d-flex flex-column justify-content-center ml-2 ml-3 f-sm"
+                                                  th:text="${account.name}"></span>
                                         </div>
-
                                         <div class="d-flex flex-column justify-content-center">
 
                                             <form th:action="@{/share(fileSystemObjectId=${fileSystemObject.id}, accountId=${account.id})}"
@@ -108,7 +121,6 @@
                                                     <i class="material-icons p-1">remove</i>
                                                 </button>
                                             </form>
-
                                         </div>
 
                                     </li>
@@ -136,12 +148,9 @@
                         </div>
 
                     </div>
-
                 </div>
-
             </div>
         </div>
-
     </div>
 </div>
 </body>

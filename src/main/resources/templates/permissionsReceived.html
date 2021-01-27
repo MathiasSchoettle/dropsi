@@ -38,7 +38,11 @@
 
                 <div class="flex-row d-flex ml-2 mb-2">
 
-                    <img th:src="@{'data:image/png;base64,' + ${share.key.getAvatarBytes()}}" class="rounded-circle shadow-lg" style="height: 2.5em; width: 2.5em;">
+                    <img th:if="${share.key.avatar != null && share.key.avatar.length > 0}"
+                         th:src="@{'data:image/png;base64,' + ${share.key.getAvatarByteEncoded()}}"
+                         class="rounded-circle shadow-lg" style="height: 2.5em; width: 2.5em;">
+                    <img th:unless="${share.key.avatar != null && share.key.avatar.length > 0}" th:src="@{/img/user.png}"
+                         class="rounded-circle shadow-lg" style="height: 2.5em; width: 2.5em;">
 
                     <div class="flex-column d-flex justify-content-center ml-3">
                         <h4 class="m-0 p-0" th:text="${share.key.name}"></h4>

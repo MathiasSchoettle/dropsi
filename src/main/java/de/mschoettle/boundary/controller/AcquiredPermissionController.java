@@ -1,16 +1,17 @@
 package de.mschoettle.boundary.controller;
 
-import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.exception.PermissionDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.Permission;
+import de.othr.sw.hamilton.entity.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,32 +27,44 @@ import java.security.Principal;
 @Scope("session")
 public class AcquiredPermissionController {
 
-    @Autowired
-    private IFileSystemService fileSystemService;
+    private IFileSystemObjectService fileSystemService;
 
-    @Autowired
     private IPermissionService permissionService;
 
+    private IAccountService accountService;
+
+    private Payment payment;
+
     @Autowired
-    private MainController mainController;
+    public void setInjectedBean(IFileSystemObjectService fileSystemService,
+                           IPermissionService permissionService,
+                           IAccountService accountService,
+                           Payment payment) {
+
+        this.fileSystemService = fileSystemService;
+        this.permissionService = permissionService;
+        this.accountService = accountService;
+        this.payment = payment;
+    }
 
     @RequestMapping(value = "/permissions/received", method = RequestMethod.GET)
     public String viewPermissions(Model model, Principal principal) {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
+        Account account = accountService.getAuthenticatedAccount(principal);
         model.addAttribute("account", account);
-        model.addAttribute("shares", account.getPermissionMap());
+        model.addAttribute("shares", permissionService.getPermissionMap(account));
+        model.addAttribute("payment", payment);
 
         return "permissionsReceived";
     }
 
     @RequestMapping(value = "/permissions/received/fileSystemObject", method = RequestMethod.GET)
-    public ResponseEntity<ByteArrayResource> downloadFile(Model model, Principal principal, @RequestParam("permissionId") long permissionId) throws
+    public ResponseEntity<ByteArrayResource> downloadFile(Principal principal, @RequestParam("permissionId") long permissionId) throws
             IOException,
             FileSystemObjectDoesNotExistException,
             PermissionDoesNotExistException {
 
-        return fileSystemService.getFileSystemObjectResponseEntityByPermission(mainController.getAuthenticatedAccount(principal), permissionId);
+        return fileSystemService.getFileSystemObjectResponseEntityByPermission(accountService.getAuthenticatedAccount(principal), permissionId);
     }
 
     @RequestMapping(value = "/permissions/received", method = RequestMethod.DELETE)
@@ -59,32 +72,23 @@ public class AcquiredPermissionController {
             FileSystemObjectDoesNotExistException,
             PermissionDoesNotExistException {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
+        Account account = accountService.getAuthenticatedAccount(principal);
         Permission permission = permissionService.getPermission(account, permissionId);
         account.removePermission(permission);
         permissionService.deletePermission(permission);
 
         model.addAttribute("account", account);
-        model.addAttribute("shares", account.getPermissionMap());
+        model.addAttribute("shares", permissionService.getPermissionMap(account));
+        model.addAttribute("payment", payment);
 
         return "permissionsReceived";
     }
 
-    /**
-     * If a IOException is thrown return a internal server error
-     *
-     * @return not found response
-     */
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> handleException() {
-        return ResponseEntity.status(500).body("A problem occured internally");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("A problem occurred internally");
     }
 
-    /**
-     * If a FileSystemObjectDoesNotExistException is thrown the main permissions received view should be shown again
-     *
-     * @return the name of the view
-     */
     @ExceptionHandler({FileSystemObjectDoesNotExistException.class, PermissionDoesNotExistException.class})
     public String handleFileSystemDoesNoteExistException(Model model, Principal principal) {
         return viewPermissions(model, principal);

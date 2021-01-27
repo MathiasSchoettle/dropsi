@@ -2,18 +2,12 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>❌</title>
-    <link th:href="@{/css/mainStyle.css}" rel="stylesheet"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>😡 404</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <title th:replace="fragments/bootstrap :: header"></title>
 </head>
 <body>
-    <div class="d-flex d-row justify-content-center" style="height: 100vh; background-color: #1d1e22">
-        <div class="d-flex flex-column justify-content-center text-white">
-            <h3>Something went wrong</h3>
-            <img th:src="@{/img/dog.png}" class="mt-5 mb-5" alt="Responsive image">
-            <a th:href="@{/home}" class="btn btn-dark">Back to the main page</a>
-        </div>
-    </div>
+<div th:replace="fragments/errorTemplate :: error('Whoops!', 'Something went wrong. Sorry about that.')"></div>
 </body>
 </html>

@@ -3,7 +3,7 @@ package de.mschoettle.boundary.controller;
 import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.control.service.IPermissionService;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.FileSystemObject;
@@ -11,32 +11,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * This controller needs to have scope session as the list "accountList" is different for every session
+ */
 @Controller
 @Scope("session")
 public class ShareController {
 
-    @Autowired
-    private IFileSystemService fileSystemService;
+    private IFileSystemObjectService fileSystemObjectService;
 
-    @Autowired
     private IAccountService accountService;
 
-    @Autowired
     private IPermissionService permissionService;
 
-    @Autowired
     private MainController mainController;
 
     private List<Account> accountList = new ArrayList<>();
+
+    @Autowired
+    public void setInjectedBean(IFileSystemObjectService fileSystemObjectService,
+                                IAccountService accountService,
+                                IPermissionService permissionService,
+                                MainController mainController) {
+
+        this.fileSystemObjectService = fileSystemObjectService;
+        this.accountService = accountService;
+        this.permissionService = permissionService;
+        this.mainController = mainController;
+    }
 
     @RequestMapping(value = "/share", method = RequestMethod.GET)
     public String showShareView(Model model, Principal principal, @RequestParam("fileSystemObjectId") long fileSystemObjectId) throws
@@ -90,8 +99,8 @@ public class ShareController {
             throws FileSystemObjectDoesNotExistException {
 
         mainController.addFolderToModel(model, principal, folderId);
-        Account provider = mainController.getAuthenticatedAccount(principal);
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(mainController.getAuthenticatedAccount(principal), fileSystemObjectId);
+        Account provider = accountService.getAuthenticatedAccount(principal);
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(accountService.getAuthenticatedAccount(principal), fileSystemObjectId);
 
         for(Account a : accountList) {
             permissionService.giveAccountPermission(a, provider, fileSystemObject);
@@ -100,11 +109,12 @@ public class ShareController {
         return "main";
     }
 
+    // TODO move to service
     private void addAccountsAndFileSystemObjectToModel(Model model, Principal principal, long fileSystemObjectId) throws
             FileSystemObjectDoesNotExistException {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
-        FileSystemObject fileSystemObject = fileSystemService.getFileSystemObject(account, fileSystemObjectId);
+        Account account = accountService.getAuthenticatedAccount(principal);
+        FileSystemObject fileSystemObject = fileSystemObjectService.getFileSystemObject(account, fileSystemObjectId);
         model.addAttribute("fileSystemObject", fileSystemObject);
 
         List<Account> accounts = accountService.getAllAccounts();
@@ -112,6 +122,11 @@ public class ShareController {
         accounts.removeAll(accountList);
 
         model.addAttribute("accounts", accounts);
+    }
+
+    @ExceptionHandler(FileSystemObjectDoesNotExistException.class)
+    public String handleAccountDoesNotExistException() {
+        return "redirect:/home";
     }
 
     @ModelAttribute

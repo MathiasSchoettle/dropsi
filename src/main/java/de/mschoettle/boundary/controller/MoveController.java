@@ -2,7 +2,8 @@ package de.mschoettle.boundary.controller;
 
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.exception.NotAFolderException;
-import de.mschoettle.control.service.IFileSystemService;
+import de.mschoettle.control.service.IAccountService;
+import de.mschoettle.control.service.IFileSystemObjectService;
 import de.mschoettle.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,14 +17,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.security.Principal;
 
 @Controller
-@Scope("session")
+@Scope("singleton")
 public class MoveController {
 
-    @Autowired
+    private IFileSystemObjectService fileSystemObjectService;
+
+    private IAccountService accountService;
+
     private MainController mainController;
 
     @Autowired
-    private IFileSystemService fileSystemService;
+    public void setInjectedBean(IFileSystemObjectService fileSystemObjectService,
+                                IAccountService accountService,
+                                MainController mainController) {
+
+        this.fileSystemObjectService = fileSystemObjectService;
+        this.accountService = accountService;
+        this.mainController = mainController;
+    }
 
     @RequestMapping(value = {"/move"}, method = RequestMethod.GET)
     public String showFolder(Model model, Principal principal,
@@ -32,9 +43,9 @@ public class MoveController {
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
-        Account account = mainController.getAuthenticatedAccount(principal);
-        model.addAttribute("folder", fileSystemService.getFolder(account, folderId));
-        model.addAttribute("fileSystemObject", fileSystemService.getFileSystemObject(account, fileSystemObjectId));
+        Account account = accountService.getAuthenticatedAccount(principal);
+        model.addAttribute("folder", fileSystemObjectService.getFolder(account, folderId));
+        model.addAttribute("fileSystemObject", fileSystemObjectService.getFileSystemObject(account, fileSystemObjectId));
         return "move";
     }
 
@@ -45,13 +56,13 @@ public class MoveController {
             FileSystemObjectDoesNotExistException,
             NotAFolderException {
 
-        fileSystemService.moveFileSystemObject(mainController.getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
+        fileSystemObjectService.moveFileSystemObject(accountService.getAuthenticatedAccount(principal), folderId, fileSystemObjectId);
         mainController.addFolderToModel(model, principal, folderId);
         return "main";
     }
 
-    @ExceptionHandler(FileSystemObjectDoesNotExistException.class)
-    public String handleFileSystemObjectDoesNotExistException(Model model, Principal principal) {
-        return mainController.showMain(model, principal);
+    @ExceptionHandler({FileSystemObjectDoesNotExistException.class, NotAFolderException.class})
+    public String handleFileSystemObjectDoesNotExistException() {
+        return "redirect:/home";
     }
 }
