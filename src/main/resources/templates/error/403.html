@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xml:lang="en" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>😡 404</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <title th:replace="fragments/bootstrap :: header"></title>
+</head>
+<body>
+<div th:replace="fragments/errorTemplate :: error(403, 'The resource you are trying to access is forbidden')"></div>
+</body>
+</html>
