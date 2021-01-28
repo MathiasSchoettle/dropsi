@@ -55,6 +55,12 @@ public class RegisterController {
         return addDataToModel(model, false, true);
     }
 
+    @ExceptionHandler(CredentialException.class)
+    public String handleCredentialException(Model model) {
+        return "redirect:/register";
+    }
+
+
     private String addDataToModel(Model model, boolean nameTaken, boolean emailTaken) {
         model.addAttribute("account", new Account());
         model.addAttribute("accountNameTaken", nameTaken);

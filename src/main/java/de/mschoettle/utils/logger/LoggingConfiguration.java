@@ -1,4 +1,4 @@
-package de.mschoettle.control.logging;
+package de.mschoettle.utils.logger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 @Configuration
-public class LoggingFactory {
+public class LoggingConfiguration {
 
     @Bean
     @Scope("singleton")

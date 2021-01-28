@@ -109,7 +109,6 @@ public class ShareController {
         return "main";
     }
 
-    // TODO move to service
     private void addAccountsAndFileSystemObjectToModel(Model model, Principal principal, long fileSystemObjectId) throws
             FileSystemObjectDoesNotExistException {
 

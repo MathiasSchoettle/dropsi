@@ -1,4 +1,4 @@
-package de.mschoettle.boundary.controller.utils;
+package de.mschoettle.utils.dto;
 
 import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;

@@ -1,32 +1,24 @@
 package de.mschoettle.boundary.controller;
 
-import com.othr.jonasrombach.retrogram.dto.PostDto;
 import de.mschoettle.control.exception.AccountDoesNotExistsException;
 import de.mschoettle.control.exception.FileSystemObjectDoesNotExistException;
 import de.mschoettle.control.exception.NotAFileException;
 import de.mschoettle.control.exception.NotAFolderException;
 import de.mschoettle.control.service.IAccountService;
-import de.mschoettle.control.service.IFileService;
 import de.mschoettle.control.service.IFileSystemObjectService;
+import de.mschoettle.control.service.IRetrogramService;
 import de.mschoettle.entity.Account;
-import de.mschoettle.entity.File;
 import de.mschoettle.entity.FileSystemObject;
 import de.mschoettle.entity.Folder;
 import de.othr.sw.hamilton.entity.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -40,23 +32,19 @@ public class MainController {
 
     private IFileSystemObjectService fileSystemObjectService;
 
-    private RestTemplate restTemplate;
-
-    private IFileService fileService;
+    private IRetrogramService retrogramService;
 
     private Payment payment;
 
     @Autowired
     public void setInjectedBean(IAccountService accountService,
                                 IFileSystemObjectService fileSystemObjectService,
-                                RestTemplate restTemplate,
-                                @Qualifier("local") IFileService fileService,
+                                IRetrogramService retrogramService,
                                 Payment payment) {
 
         this.accountService = accountService;
         this.fileSystemObjectService = fileSystemObjectService;
-        this.restTemplate = restTemplate;
-        this.fileService = fileService;
+        this.retrogramService = retrogramService;
         this.payment = payment;
     }
 
@@ -151,32 +139,11 @@ public class MainController {
             FileSystemObjectDoesNotExistException,
             IOException {
 
-        // TODO service
-        File file = fileSystemObjectService.getFile(accountService.getAuthenticatedAccount(principal), fileId);
         Account account = accountService.getAuthenticatedAccount(principal);
 
-        PostDto post = new PostDto();
+        boolean posted = retrogramService.postImageToRetrogram(account, fileId);
 
-        String description = "posted by Dropsi";
-        byte[] data = fileService.getByteArrayOfFile(file);
-        String fileType = file.getFileExtension();
-
-        post.setDescription(description);
-        post.setImageBytes(data);
-        post.setImageType(fileType);
-
-        // String retrogramUrl = "http://im-codd:8925/api/post";
-        String test = "http://localhost:8922/api/post";
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(test).queryParam("secretToken", account.getRetrogramToken());
-
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<PostDto> request = new HttpEntity<>(post, headers);
-        ResponseEntity<PostDto> responseEntity = restTemplate.exchange(uriComponentsBuilder.toUriString(), HttpMethod.POST, request, PostDto.class);
-
-        String popupString = responseEntity.getStatusCode().equals(HttpStatus.OK) ? "❤ Posted Image to Retrogram" : "❌ Could not post Image to Retrogram";
-        model.addAttribute("popupString", popupString);
-
+        model.addAttribute("popupString", posted ? "❤ Posted Image to Retrogram" : "❌ Could not post Image to Retrogram");
         addFolderToModel(model, principal, folderId);
         return "main";
     }
@@ -197,5 +164,9 @@ public class MainController {
         return "";
     }
 
-    // TODO exception handling
+    @ExceptionHandler({AccountDoesNotExistsException.class, FileSystemObjectDoesNotExistException.class, NotAFolderException.class, NotAFileException.class, IOException.class})
+    public String handleExceptions(Exception e) {
+        e.printStackTrace();
+        return "redirect:/home";
+    }
 }

@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.login.CredentialException;
-import javax.transaction.Transactional;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;

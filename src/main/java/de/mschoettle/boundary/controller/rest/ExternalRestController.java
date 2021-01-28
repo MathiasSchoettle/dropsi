@@ -6,7 +6,7 @@ import de.mschoettle.control.exception.NotAFileException;
 import de.mschoettle.control.exception.NotAFolderException;
 import de.mschoettle.control.service.IAccountService;
 import de.mschoettle.control.service.IFileSystemObjectService;
-import de.mschoettle.boundary.controller.utils.DTOConvertUtils;
+import de.mschoettle.utils.dto.DTOConvertUtils;
 import de.mschoettle.entity.Account;
 import de.mschoettle.entity.dto.FolderDTO;
 import org.slf4j.Logger;

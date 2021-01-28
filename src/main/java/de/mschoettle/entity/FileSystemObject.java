@@ -30,7 +30,7 @@ public abstract class FileSystemObject {
 
     @SortNatural
     @OrderBy("creationDate DESC")
-    @OneToMany(mappedBy = "reference", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "reference", cascade = CascadeType.MERGE)
     private List<AccessLogEntry> accessLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "shared", cascade = CascadeType.REMOVE)

@@ -10,8 +10,10 @@ import java.io.IOException;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class File extends FileSystemObject {
 
+    // i.e. 'png'
     private String fileExtension;
 
+    // i.e. 'image/png'
     private String fileType;
 
     private String fileReference;

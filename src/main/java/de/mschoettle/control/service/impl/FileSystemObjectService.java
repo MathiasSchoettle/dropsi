@@ -16,9 +16,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
+import javax.swing.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -279,6 +280,7 @@ public class FileSystemObjectService implements IFileSystemObjectService {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.toString());
         ByteArrayResource resource = new ByteArrayResource(data);
+
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(data.length)
