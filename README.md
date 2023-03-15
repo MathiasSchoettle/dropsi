@@ -1,6 +1,6 @@
 ## Documentation and Tutorial for the Cloud Filesystem DROPSI
 
-###### Mathias Schöttle - MtrNr. 3147337
+###### Mathias Schöttle
 
 ###Deployment
     1. Kill old process
